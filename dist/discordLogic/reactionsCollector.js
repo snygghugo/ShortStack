@@ -1,0 +1,53 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reactionCollector = void 0;
+const view_1 = require("../utils/view");
+const utilities_1 = require("../utils/utilities");
+const emojiDict = {
+    '1️⃣': 'pos1',
+    '2️⃣': 'pos2',
+    '3️⃣': 'pos3',
+    '4️⃣': 'pos4',
+    '5️⃣': 'pos5',
+};
+const emojiRoles = Object.keys(emojiDict);
+const reactionCollector = async (message, interactionUser) => {
+    emojiRoles.forEach(async (emoji) => await message.react(emoji));
+    const emojiCopy = [...emojiRoles];
+    const chosenRoles = [];
+    const collectorFilter = (reaction, user) => (0, utilities_1.tsCompliantIncludes)(emojiCopy, reaction.emoji.name) &&
+        user.id === interactionUser.id;
+    const collector = message.createReactionCollector({
+        filter: collectorFilter,
+        max: 5,
+        time: 5 * 60000,
+    });
+    collector.on('collect', async (reaction, user) => {
+        if (!reaction.emoji.name) {
+            console.error('Reaction seems weird', reaction);
+            return;
+        }
+        const reactionToRemove = message.reactions.cache.get(reaction.emoji.name);
+        if (!reactionToRemove) {
+            console.error("Couldn't find this emoji in reactions", reaction.emoji.name);
+            return;
+        }
+        emojiCopy.splice(emojiCopy.indexOf(reaction.emoji.name), 1);
+        chosenRoles.push(reaction.emoji.name);
+        try {
+            message.edit({ embeds: [(0, view_1.prefEmbedMaker)(chosenRoles)] });
+            reactionToRemove.remove();
+        }
+        catch (error) {
+            console.error('Failed to remove reactions:', error);
+        }
+    });
+    await new Promise((res, rej) => {
+        collector.on('end', collected => {
+            console.log('We are finished! ', collected.size);
+            res(collected);
+        });
+    });
+    return chosenRoles.map(emoji => emojiDict[emoji]);
+};
+exports.reactionCollector = reactionCollector;
