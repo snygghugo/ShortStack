@@ -8,33 +8,37 @@ import {
   Message,
   AnyThreadChannel,
   GuildMember,
-  ChannelType,
   ButtonInteraction,
 } from 'discord.js';
 import {
-  stringPrettifier,
-  rowBoat,
-  linkButton,
-  inOutBut,
-  rdyButtons,
-  eRemover,
+  eRemover as removeFromArray,
   getTimestamp,
-  shuffle,
   handleIt,
   forceReady,
   everyoneReady,
   pingMessage,
-  modalComponent,
   playerIdentityConfirmedPlayer,
   playerIdentityGuildMember,
 } from './utilities';
+import {
+  stringPrettifier,
+  createButtonRow,
+  inOutBut,
+  rdyButtons,
+  modalComponent,
+} from '../../utils/view';
 import { stackSetup } from '../stack/stacking';
-import { ConditionalPlayer, ConfirmedPlayer, PlayerToReady } from './types';
-import { getPreferences, getHandle } from '../../utils/utilities';
+import {
+  ConditionalPlayer,
+  ConfirmedPlayer,
+  PlayerToReady,
+} from '../../utils/types';
+import { getHandle, shuffle } from '../../utils/generalUtilities';
 import {
   getDotaRole,
   getChannelFromSettings,
   getSettings,
+  getPreferences,
 } from '../../database/db';
 
 const standardTime = 60;
@@ -73,7 +77,9 @@ const readyColours = {
 //   return initMessage;
 // };
 
-export const arrayMaker = (interaction: ChatInputCommandInteraction) => {
+export const createConfirmedPlayers = (
+  interaction: ChatInputCommandInteraction
+) => {
   const confirmedPlayers: ConfirmedPlayer[] = [];
   confirmedPlayers.push({ player: interaction.user });
   //It's a 2 because I arbitrarily start at p2 because p2 would be the 2nd person in the Dota party
@@ -96,11 +102,13 @@ export const setUp = async (
 ) => {
   if (!interaction.guildId)
     throw new Error('Somehow there is a lacking GuildId in setUp!');
-  const roleCall = await getDotaRole(interaction.guildId);
   const condiPlayers: ConditionalPlayer[] = [];
-  // messageContent = await messageMaker(interaction);
+  const roleCall = await getDotaRole(interaction.guildId);
+  // messageContent = await messageMaker(interaction); REMAKE THIS GUY ONCE QUEUE IS FIGURED OUT
+  const time = getTimestamp(1000);
+
   const messageToSend = {
-    content: `Calling all ${roleCall}`,
+    content: `Calling all ${roleCall}! Closes <t:${time + ONEHOUR}:R>`, //this will later be messageContent
     embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
@@ -110,7 +118,6 @@ export const setUp = async (
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   confirmedPlayers.forEach(p => partyThread.members.add(p.player));
-
   if (confirmedPlayers.length > 4) {
     //CHECK IF THIS IS WHERE THE BUG IS? CONSOLE LOG THAT FUCKER OUT OF ORBIT
     // ljudGöraren.ljudGöraren(userToMember(confirmedPlayers, interaction));
@@ -134,10 +141,13 @@ export const setUp = async (
             playerIdentityConfirmedPlayer(i) || playerIdentityGuildMember(i)
           )
         ) {
-          eRemover(condiPlayers, i); //remove player from Condi if they're in it
+          removeFromArray(condiPlayers, i);
           confirmedPlayers.push({ player: i.user });
           await partyThread.members.add(i.user);
           if (confirmedPlayers.length > 4) {
+            console.log(
+              "That's enough! Stopping the collector from within the case buttonOptions.in"
+            );
             collector.stop(
               "That's enough! Collector is stopped from the switch case buttonOptions.in"
             );
@@ -151,7 +161,7 @@ export const setUp = async (
             playerIdentityConfirmedPlayer(i) || playerIdentityGuildMember(i)
           )
         ) {
-          eRemover(confirmedPlayers, i); //remove player from IN if they're in it
+          removeFromArray(confirmedPlayers, i); //remove player from IN if they're in it
           await modalThing(i, condiPlayers, confirmedPlayers);
         }
         break;
@@ -168,6 +178,7 @@ export const setUp = async (
             'The dummy array was unable to be created from cache!'
           );
         if ([...dummyCollection].length < 5) {
+          console.log('Fetching more dummys');
           dummyCollection = (await interaction.guild?.members.fetch())?.filter(
             dummy =>
               dummy.user.bot &&
@@ -183,6 +194,9 @@ export const setUp = async (
         if (dummy) {
           await dummySystem(i, condiPlayers, confirmedPlayers, dummy);
           if (confirmedPlayers.length > 4) {
+            console.log(
+              "That's enough! Stopping the collector from within the dummy array stuff"
+            );
             collector.stop(
               "That's enough! Stopping the collector from within the dummy array stuff"
             );
@@ -191,8 +205,8 @@ export const setUp = async (
         break;
 
       case buttonOptions.out:
-        eRemover(condiPlayers, i);
-        eRemover(confirmedPlayers, i);
+        removeFromArray(condiPlayers, i);
+        removeFromArray(confirmedPlayers, i);
         break;
     }
     if (!i.replied) {
@@ -238,6 +252,13 @@ async function readyChecker(
   const collector = partyMessage.channel.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
+  });
+  //THIS GUY IS NEW HERE, HE USED TO BE DOWN BELOW!
+  const embed = readyEmbed(readyArray);
+  await partyMessage.edit({
+    content: `Ready check closes <t:${time + READYTIME}:R>`,
+    embeds: [embed],
+    components: rdyButtons(),
   });
 
   collector.on('collect', async i => {
@@ -293,7 +314,7 @@ async function readyChecker(
     console.log(`Everyone ready ser ut såhär: ${everyoneReady(readyArray)}`);
     if (!everyoneReady(readyArray)) {
       const time = getTimestamp(1000);
-      const redoButton = rowBoat('Re-Check', 'redo');
+      const redoButton = createButtonRow('Re-Check', 'redo');
       switch (collected.last()?.customId) {
         case readyOptions.stop:
           await partyMessage.edit({
@@ -318,7 +339,7 @@ async function readyChecker(
           return;
       }
     } else {
-      const stackButton = rowBoat('Stack it!', 'stack');
+      const stackButton = createButtonRow('Stack it!', 'stack');
       let finalMessage = '';
       switch (collected.last()?.customId) {
         case readyOptions.sudo:
@@ -335,16 +356,16 @@ async function readyChecker(
         content: finalMessage,
         components: [stackButton],
       });
-      await stackIt(partyMessage, confirmedPlayers, partyThread); //recently removed partyThread as the third argument?
+      await stackIt(partyMessage, confirmedPlayers, partyThread);
     }
   });
 
-  const embed = readyEmbed(readyArray);
-  partyMessage.edit({
-    content: `Ready check closes <t:${time + READYTIME}:R>`,
-    embeds: [embed],
-    components: rdyButtons(),
-  });
+  // const embed = readyEmbed(readyArray);
+  // partyMessage.edit({
+  //   content: `Ready check closes <t:${time + READYTIME}:R>`,
+  //   embeds: [embed],
+  //   components: rdyButtons(),
+  // }); gonna try moving this fella up to see what happens
 }
 
 async function redoCollector(

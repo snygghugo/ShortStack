@@ -2,12 +2,13 @@ import {
   ChatInputCommandInteraction,
   GuildMember,
   SlashCommandBuilder,
+  SlashCommandUserOption,
   User,
 } from 'discord.js';
-import { getPreferences, shuffle } from '../utils/utilities';
-import { getHandle } from '../utils/utilities';
+import { shuffle } from '../utils/generalUtilities';
+import { getHandle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
-import { getSettings } from '../database/db';
+import { getSettings, getPreferences } from '../database/db';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;
@@ -62,26 +63,23 @@ const createPlayerArray = async (
   }
   return shuffle(playerArray);
 };
+let playerNo = 1;
+const addUser = (option: SlashCommandUserOption) => {
+  return option
+    .setName(`p${playerNo++}`)
+    .setDescription('Select a player')
+    .setRequired(true);
+};
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('splack')
     .setDescription('Dota 2 role selection tool')
-    .addUserOption(option =>
-      option.setName('p1').setDescription('Select a player').setRequired(true)
-    )
-    .addUserOption(option =>
-      option.setName('p2').setDescription('Select a player').setRequired(true)
-    )
-    .addUserOption(option =>
-      option.setName('p3').setDescription('Select a player').setRequired(true)
-    )
-    .addUserOption(option =>
-      option.setName('p4').setDescription('Select a player').setRequired(true)
-    )
-    .addUserOption(option =>
-      option.setName('p5').setDescription('Select a player').setRequired(true)
-    )
+    .addUserOption(addUser)
+    .addUserOption(addUser)
+    .addUserOption(addUser)
+    .addUserOption(addUser)
+    .addUserOption(addUser)
     .addIntegerOption(option =>
       option.setName('time').setDescription('Pick time')
     ),

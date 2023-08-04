@@ -1,22 +1,7 @@
 import { ChatInputCommandInteraction, GuildMember, User } from 'discord.js';
 import { promises as fs } from 'fs';
 
-export type HugoData = {
-  [guild: string]: {
-    players: { [player: string]: string[] };
-    yaposChannel?: string;
-    trashChannel?: string;
-    yaposRole?: string;
-  };
-};
-
-export type SettingsOptions = {
-  stacks?: string;
-  role?: string;
-  trash?: string;
-};
-
-export function shuffle([...array]) {
+export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
     randomIndex;
 
@@ -34,27 +19,13 @@ export function shuffle([...array]) {
   }
 
   return array;
-}
+};
 
 export const getHandle = (player: User | GuildMember) => {
   if (player instanceof User) {
     return player.username;
   }
   return player.nickname || player.user.username;
-};
-
-export const getPreferences = (
-  user: User | GuildMember,
-  settingsObject: HugoData,
-  guildId: string
-) => {
-  if (user.toString() in settingsObject[guildId].players) {
-    const preferences = settingsObject[guildId].players[user.toString()];
-    console.log(`${getHandle(user)} has preferences ${preferences}!`);
-    return preferences;
-  }
-  console.log('User does not have preferences, returning fill');
-  return ['fill'];
 };
 
 export const tsCompliantIncludes = (array: any[], x: any) => {

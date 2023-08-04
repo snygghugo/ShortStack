@@ -6,20 +6,17 @@ import {
   ButtonStyle,
   AttachmentBuilder,
   ChatInputCommandInteraction,
-  TextChannel,
   Message,
   BaseInteraction,
   GuildMember,
-  StringSelectMenuInteraction,
   ButtonInteraction,
   User,
-  AnyThreadChannel,
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject } from '../splack';
-import { getHandle } from '../../utils/utilities';
+import { getHandle } from '../../utils/generalUtilities';
 import { request } from 'undici';
-import { shuffle } from '../../utils/utilities';
+import { shuffle } from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 
 interface NextUp extends PlayerObject {

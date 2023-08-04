@@ -1,35 +1,12 @@
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
   ButtonInteraction,
-  ButtonStyle,
   GuildMember,
-  TextInputBuilder,
   ThreadChannel,
   CollectedInteraction,
 } from 'discord.js';
-import { ConfirmedPlayer, PlayerToReady } from './types';
+import { ConfirmedPlayer, PlayerToReady } from '../../utils/types';
 
 // import axios from 'axios';
-
-const REMINDERS = [
-  ' TAKING OUR SWEET TIME, HUH?',
-  ' **JALLA, BITCH!**',
-  ' CHOP CHOP!',
-  ' NU SKET DU ALLT I DET BLÅ SKÅPET',
-  ' Hur lång tid kan det ta...',
-  " WHAT'S TAKING YOU???",
-  " THIS GAME AIN'T GONNA THROW ITSELF",
-  ' A LITTLE LESS CONVERSATION, A LITTLE MORE ACTION PLEASE',
-  ' LESS TALK, MORE COCK',
-  ' LESS STALL, MORE /STACK',
-  ' POOP FASTER!!!',
-  ' ***TODAY MB???***',
-];
-
-const buttonDict = {
-  primary: ButtonStyle.Primary,
-};
 
 // const playerIdentity = (interaction: ChatInputCommandInteraction) => {
 //   return (e: GuildMember | ConfirmedPlayer) =>
@@ -51,39 +28,6 @@ export const playerIdentity = (
 ) =>
   playerIdentityGuildMember(interaction) ||
   playerIdentityConfirmedPlayer(interaction);
-
-export const shuffle = <Type>(array: Type[]): Type[] => {
-  let currentIndex = array.length,
-    randomIndex;
-
-  // While there remain elements to shuffle.
-  while (currentIndex != 0) {
-    // Pick a remaining element.
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-
-    // And swap it with the current element.
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-};
-type ShortButtonConf = {
-  id: string;
-  label: string;
-  style: string;
-};
-export const shortButton = ({ id, label, style }: ShortButtonConf) => {
-  return new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(id)
-      .setLabel(label)
-      .setStyle(buttonDict[style as keyof typeof buttonDict])
-  );
-};
 
 // export const helpMeLittleHelper = async (queuer, method: string) => {
 //   const request = {
@@ -117,94 +61,6 @@ export const shortButton = ({ id, label, style }: ShortButtonConf) => {
 //     console.error(error);
 //   }
 // };
-
-export const stringPrettifier = (string: string) => {
-  const optimalStringLength = 39;
-  const neededFilling = optimalStringLength - string.length;
-  const stringFilling = '\u200b'.repeat(neededFilling + 1);
-  return `${string}${stringFilling}`;
-};
-
-export const rowBoat = (btnText: string, btnId: string) => {
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(btnId)
-      .setLabel(btnText)
-      .setStyle(ButtonStyle.Secondary)
-  );
-  return buttonRow;
-};
-
-export const linkButton = (thread: ThreadChannel, label: string) => {
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setURL(`https://discord.com/channels/${thread.guild.id}/${thread.id}`)
-      .setLabel(label)
-      .setStyle(ButtonStyle.Link)
-  );
-  return buttonRow;
-};
-
-export const inOutBut = () => {
-  const row1 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('in')
-        .setLabel("I'M IN")
-        .setStyle(ButtonStyle.Success)
-    )
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('out')
-        .setLabel("I'M OUT")
-        .setStyle(ButtonStyle.Danger)
-    );
-
-  const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('dummy')
-        .setLabel('Dummy')
-        .setStyle(ButtonStyle.Primary)
-    )
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('condi')
-        .setLabel("I'm In, but (...)")
-        .setStyle(ButtonStyle.Secondary)
-    );
-  return [row1, row2];
-};
-
-export const rdyButtons = () => {
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('rdy')
-        .setLabel('✅')
-        .setStyle(ButtonStyle.Success)
-    )
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('stop')
-        .setLabel('Cancel')
-        .setStyle(ButtonStyle.Danger)
-    );
-  const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('sudo')
-        .setLabel('FORCE READY')
-        .setStyle(ButtonStyle.Primary)
-    )
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId('ping')
-        .setLabel('Ping')
-        .setStyle(ButtonStyle.Secondary)
-    );
-  return [buttonRow, row2];
-};
 
 export const eRemover = (
   array: ConfirmedPlayer[] | ConfirmedPlayer[],
@@ -241,10 +97,6 @@ export const getTimestamp = (mod: number) => {
   return Math.floor(Date.now() / mod);
 };
 
-export const modalComponent = (reasonInput: TextInputBuilder) => {
-  return new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput);
-};
-
 export const handleIt = async (
   i: CollectedInteraction,
   flavourText: string
@@ -279,14 +131,14 @@ export const pingMessage = async (
   readyArray: PlayerToReady[],
   partyThread: ThreadChannel
 ) => {
-  const shitList = [];
+  const reminders = [];
   for (let player of readyArray) {
     if (!player.ready) {
       const gentleReminder = await partyThread.send(
-        `${player.gamer.toString()}${shuffle(REMINDERS)[0]}`
+        `${player.gamer.toString()} we're waiting!}`
       );
-      shitList.push(gentleReminder);
+      reminders.push(gentleReminder);
     }
   }
-  shitList.map(async message => await message.delete());
+  reminders.map(async message => await message.delete());
 };

@@ -10,3 +10,18 @@ export type PlayerToReady = {
   ready: boolean;
   pickTime: number;
 };
+
+export type HugoData = {
+  [guild: string]: {
+    players: { [player: string]: string[] };
+    yaposChannel?: string;
+    trashChannel?: string;
+    yaposRole?: string;
+  };
+};
+
+export type SettingsOptions = {
+  stacks?: string;
+  role?: string;
+  trash?: string;
+};

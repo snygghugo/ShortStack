@@ -2,15 +2,32 @@ import {
   ChatInputCommandInteraction,
   ButtonInteraction,
   TextChannel,
+  User,
+  GuildMember,
 } from 'discord.js';
-import { HugoData, SettingsOptions } from '../utils/utilities';
+import { HugoData, SettingsOptions } from '../utils/types';
 import { promises as fs } from 'fs';
+import { getHandle } from '../utils/generalUtilities';
 
 export const getSettings = async (): Promise<HugoData> => {
   const settingsObject = JSON.parse(
     await fs.readFile('settings.json', 'utf-8')
   );
   return settingsObject;
+};
+
+export const getPreferences = (
+  user: User | GuildMember,
+  settingsObject: HugoData,
+  guildId: string
+) => {
+  if (user.toString() in settingsObject[guildId].players) {
+    const preferences = settingsObject[guildId].players[user.toString()];
+    console.log(`${getHandle(user)} has preferences ${preferences}!`);
+    return preferences;
+  }
+  console.log('User does not have preferences, returning fill');
+  return ['fill'];
 };
 
 export const getChannelFromSettings = async (

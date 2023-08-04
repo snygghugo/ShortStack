@@ -1,4 +1,120 @@
 import { botMessages } from './textContent';
+import {
+  ButtonStyle,
+  ButtonBuilder,
+  ActionRowBuilder,
+  ThreadChannel,
+  TextInputBuilder,
+} from 'discord.js';
+
+export const stringPrettifier = (string: string) => {
+  const optimalStringLength = 39;
+  const neededFilling = optimalStringLength - string.length;
+  const stringFilling = '\u200b'.repeat(neededFilling + 1);
+  return `${string}${stringFilling}`;
+};
+
+export const modalComponent = (reasonInput: TextInputBuilder) => {
+  return new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput);
+};
+
+export const createButton = (
+  btnText: string,
+  btnId: string,
+  btnStyle: ButtonStyle = ButtonStyle.Secondary
+) =>
+  new ButtonBuilder().setCustomId(btnId).setLabel(btnText).setStyle(btnStyle);
+
+export const createButtonRow = (
+  btnText: string,
+  btnId: string,
+  btnStyle: ButtonStyle = ButtonStyle.Secondary
+) => {
+  const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    createButton(btnText, btnId, btnStyle)
+  );
+  return button;
+};
+
+export const linkButton = (thread: ThreadChannel, label: string) => {
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setURL(`https://discord.com/channels/${thread.guild.id}/${thread.id}`)
+      .setLabel(label)
+      .setStyle(ButtonStyle.Link)
+  );
+  return buttonRow;
+};
+
+export const inOutBut = () => {
+  const row1 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      createButton('in', "I'M IN", ButtonStyle.Success)
+      // new ButtonBuilder()
+      //   .setCustomId('in')
+      //   .setLabel("I'M IN")
+      //   .setStyle(ButtonStyle.Success)
+    )
+    .addComponents(
+      createButton('out', "I'M OUT", ButtonStyle.Danger)
+
+      // new ButtonBuilder()
+      //   .setCustomId('out')
+      //   .setLabel("I'M OUT")
+      //   .setStyle(ButtonStyle.Danger)
+    );
+
+  const row2 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      createButton('dummy', 'Dummy', ButtonStyle.Primary)
+      // new ButtonBuilder()
+      //   .setCustomId('dummy')
+      //   .setLabel('Dummy')
+      //   .setStyle(ButtonStyle.Primary)
+    )
+    .addComponents(
+      createButton('condi', "I'm in, but (...)")
+      // new ButtonBuilder()
+      //   .setCustomId('condi')
+      //   .setLabel("I'm In, but (...)")
+      //   .setStyle(ButtonStyle.Secondary)
+    );
+  return [row1, row2];
+};
+
+export const rdyButtons = () => {
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      createButton('rdy', '✅', ButtonStyle.Success)
+      // new ButtonBuilder()
+      //   .setCustomId('rdy')
+      //   .setLabel('✅')
+      //   .setStyle(ButtonStyle.Success)
+    )
+    .addComponents(
+      createButton('stop', 'Cancel', ButtonStyle.Danger)
+      // new ButtonBuilder()
+      //   .setCustomId('stop')
+      //   .setLabel('Cancel')
+      //   .setStyle(ButtonStyle.Danger)
+    );
+  const row2 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      createButton('sudo', 'FORCE READY', ButtonStyle.Primary)
+      // new ButtonBuilder()
+      //   .setCustomId('sudo')
+      //   .setLabel('FORCE READY')
+      //   .setStyle(ButtonStyle.Primary)
+    )
+    .addComponents(
+      createButton('ping', 'Ping')
+      // new ButtonBuilder()
+      //   .setCustomId('ping')
+      //   .setLabel('Ping')
+      //   .setStyle(ButtonStyle.Secondary)
+    );
+  return [buttonRow, row2];
+};
 
 export const prefEmbedMaker = (chosenRoles?: string[]) => {
   let fieldTitle = botMessages.rolePrefFieldTitle;

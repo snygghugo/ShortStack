@@ -5,7 +5,7 @@ import {
   SlashCommandRoleOption,
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
-import { SettingsOptions } from '../utils/utilities';
+import { SettingsOptions } from '../utils/types';
 import { saveSettings } from '../database/db';
 
 export const data = new SlashCommandBuilder()

@@ -1,6 +1,6 @@
 import { Message, User, MessageReaction } from 'discord.js';
 import { prefEmbedMaker } from '../../utils/view';
-import { tsCompliantIncludes } from '../../utils/utilities';
+import { tsCompliantIncludes } from '../../utils/generalUtilities';
 const emojiDict = {
   '1️⃣': 'pos1',
   '2️⃣': 'pos2',
