@@ -1,5 +1,4 @@
-import { ChatInputCommandInteraction, GuildMember, User } from 'discord.js';
-import { promises as fs } from 'fs';
+import { GuildMember, User } from 'discord.js';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,

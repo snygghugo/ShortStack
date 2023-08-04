@@ -36,83 +36,34 @@ export const createButtonRow = (
   return button;
 };
 
-export const linkButton = (thread: ThreadChannel, label: string) => {
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setURL(`https://discord.com/channels/${thread.guild.id}/${thread.id}`)
-      .setLabel(label)
-      .setStyle(ButtonStyle.Link)
-  );
-  return buttonRow;
-};
+// export const linkButton = (thread: ThreadChannel, label: string) => {
+//   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+//     new ButtonBuilder()
+//       .setURL(`https://discord.com/channels/${thread.guild.id}/${thread.id}`)
+//       .setLabel(label)
+//       .setStyle(ButtonStyle.Link)
+//   );
+//   return buttonRow;
+// };
 
 export const inOutBut = () => {
   const row1 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      createButton('in', "I'M IN", ButtonStyle.Success)
-      // new ButtonBuilder()
-      //   .setCustomId('in')
-      //   .setLabel("I'M IN")
-      //   .setStyle(ButtonStyle.Success)
-    )
-    .addComponents(
-      createButton('out', "I'M OUT", ButtonStyle.Danger)
-
-      // new ButtonBuilder()
-      //   .setCustomId('out')
-      //   .setLabel("I'M OUT")
-      //   .setStyle(ButtonStyle.Danger)
-    );
+    .addComponents(createButton('in', "I'M IN", ButtonStyle.Success))
+    .addComponents(createButton('out', "I'M OUT", ButtonStyle.Danger));
 
   const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      createButton('dummy', 'Dummy', ButtonStyle.Primary)
-      // new ButtonBuilder()
-      //   .setCustomId('dummy')
-      //   .setLabel('Dummy')
-      //   .setStyle(ButtonStyle.Primary)
-    )
-    .addComponents(
-      createButton('condi', "I'm in, but (...)")
-      // new ButtonBuilder()
-      //   .setCustomId('condi')
-      //   .setLabel("I'm In, but (...)")
-      //   .setStyle(ButtonStyle.Secondary)
-    );
+    .addComponents(createButton('dummy', 'Dummy', ButtonStyle.Primary))
+    .addComponents(createButton('condi', "I'm in, but (...)"));
   return [row1, row2];
 };
 
 export const rdyButtons = () => {
   const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      createButton('rdy', '✅', ButtonStyle.Success)
-      // new ButtonBuilder()
-      //   .setCustomId('rdy')
-      //   .setLabel('✅')
-      //   .setStyle(ButtonStyle.Success)
-    )
-    .addComponents(
-      createButton('stop', 'Cancel', ButtonStyle.Danger)
-      // new ButtonBuilder()
-      //   .setCustomId('stop')
-      //   .setLabel('Cancel')
-      //   .setStyle(ButtonStyle.Danger)
-    );
+    .addComponents(createButton('rdy', '✅', ButtonStyle.Success))
+    .addComponents(createButton('stop', 'Cancel', ButtonStyle.Danger));
   const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      createButton('sudo', 'FORCE READY', ButtonStyle.Primary)
-      // new ButtonBuilder()
-      //   .setCustomId('sudo')
-      //   .setLabel('FORCE READY')
-      //   .setStyle(ButtonStyle.Primary)
-    )
-    .addComponents(
-      createButton('ping', 'Ping')
-      // new ButtonBuilder()
-      //   .setCustomId('ping')
-      //   .setLabel('Ping')
-      //   .setStyle(ButtonStyle.Secondary)
-    );
+    .addComponents(createButton('sudo', 'FORCE READY', ButtonStyle.Primary))
+    .addComponents(createButton('ping', 'Ping'));
   return [buttonRow, row2];
 };
 

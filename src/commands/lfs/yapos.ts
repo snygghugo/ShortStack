@@ -386,6 +386,7 @@ async function redoCollector(
 
   collector.on('end', async (collected: any) => {
     //REMOVE THIS ANY
+    console.log('this is collected', collected);
     switch (collected.last()?.customId) {
       case 'redo':
         readyChecker(confirmedPlayers, partyMessage, partyThread);

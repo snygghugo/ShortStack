@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { prefEmbedMaker } from '../utils/view';
-import { reactionCollector } from './stack/reactionsCollector';
+import { reactionCollector } from './preference/reactionsCollector';
 import { savePreferences } from '../database/db';
 
 module.exports = {
