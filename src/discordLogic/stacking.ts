@@ -283,44 +283,40 @@ async function artTime(playerArray: PlayerObject[]) {
   const background = await Canvas.loadImage('./map.png');
   context.drawImage(background, 0, 0, canvas.width, canvas.height);
   context.beginPath();
-  //pos 1 circle crop
-  context.arc(260, 273, 25, 0, Math.PI * 2, true);
-  context.closePath();
-  //pos 2 circle crop
-  context.arc(150, 150, 25, 0, Math.PI * 2, true);
-  context.closePath();
-  //pos 3 circle crop
-  context.arc(35, 50, 25, 0, Math.PI * 2, true);
-  context.closePath();
-  //pos 4 circle crop
-  context.arc(125, 65, 25, 0, Math.PI * 2, true);
-  context.closePath();
-  //pos 5 circle crop
-  context.arc(210, 273, 25, 0, Math.PI * 2, true);
-  context.closePath();
-
+  const positionsPositionsArray = [
+    { x: 235 - 10, y: 248 - 20 },
+    { x: 125, y: 125 },
+    { x: 10, y: 25 },
+    { x: 100, y: 40 },
+    { x: 185 - 10, y: 248 - 20 },
+  ];
+  positionsPositionsArray.forEach(({ x, y }) => {
+    const radius = 25;
+    context.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
+    context.closePath();
+  });
   context.clip();
   for (let player of playerArray) {
     if (player.avatar) {
       if (player.position.startsWith('pos')) {
         const avatar = await Canvas.loadImage(player.avatar);
-        const draw = (x: number, y: number) =>
+        const draw = ({ x, y }: { x: number; y: number }) =>
           context.drawImage(avatar, x, y, 50, 50);
         switch (player.position) {
           case 'pos1':
-            draw(235, 248);
+            draw(positionsPositionsArray[0]);
             break;
           case 'pos2':
-            draw(125, 125);
+            draw(positionsPositionsArray[1]);
             break;
           case 'pos3':
-            draw(10, 25);
+            draw(positionsPositionsArray[2]);
             break;
           case 'pos4':
-            draw(100, 40);
+            draw(positionsPositionsArray[3]);
             break;
           case 'pos5':
-            draw(185, 248);
+            draw(positionsPositionsArray[4]);
             break;
         }
       }
@@ -391,28 +387,22 @@ function rowBoat(
 }
 
 function finalMessageMaker(playerArray: PlayerObject[]) {
-  const finalArray = [];
-  const shortArray = ['/stack'];
-  for (const i in playerArray) {
-    const player = playerArray[i];
-    shortArray.push(`p${i + 1}:${player.user.toString()}`);
+  const copyCodeCommand = [
+    '/splack',
+    ...playerArray.map((player, i) => `p${i + 1}:${player.user.toString()}`),
+  ];
+  const finalArray = playerArray.map(player => {
     if (player.randomed > 0) {
-      let interrobangAmount = '';
-      for (let i = 0; i < player.randomed; i++) {
-        interrobangAmount += '⁉️';
-      }
-      finalArray.push(
-        `${getHandle(player.user)} ${player.position.slice(
-          3
-        )}${interrobangAmount}`
-      );
-      continue;
+      return `${getHandle(player.user)} ${player.position.slice(
+        3
+      )}${'⁉️'.repeat(player.randomed)}`;
     }
-    finalArray.push(`${getHandle(player.user)} ${player.position.slice(3)}`);
-  }
-  const finalMessage = finalArray.join(' | ');
-  const joinedArray = shortArray.join(' ');
-  return { finalMessage: finalMessage, shortCommand: joinedArray };
+    return `${getHandle(player.user)} ${player.position.slice(3)}`;
+  });
+  return {
+    finalMessage: finalArray.join(' | '),
+    shortCommand: copyCodeCommand.join(' '),
+  };
 }
 
 function appropriateRole(available: string[], nextUp: NextUp) {
