@@ -22,7 +22,7 @@ import {
   playerIdentityGuildMember,
 } from './utilities';
 import {
-  stringPrettifier,
+  stringPrettifierForYapos,
   createButtonRow,
   inOutBut,
   rdyButtons,
@@ -629,12 +629,14 @@ function readyEmbed(readyArray: PlayerToReady[]) {
     if (player.ready) {
       rAmount++;
       playerFields.push(
-        `${stringPrettifier(player.gamer.toString())} \`\`readied in ${
+        `${stringPrettifierForYapos(player.gamer.toString())} \`\`readied in ${
           player.pickTime / 1000
         }\`\`✅`
       );
     } else {
-      playerFields.push(`${stringPrettifier(player.gamer.toString())}❌`);
+      playerFields.push(
+        `${stringPrettifierForYapos(player.gamer.toString())}❌`
+      );
     }
   }
   const embed = {

@@ -1,5 +1,18 @@
 import { User, GuildMember } from 'discord.js';
 
+export type PlayerObject = {
+  user: User | GuildMember;
+  handle: string;
+  position: string;
+  preferences: string[];
+  randomed: number;
+  avatar?: ArrayBuffer;
+};
+
+export interface NextUp extends PlayerObject {
+  fillFlag: boolean;
+}
+
 export type ConditionalPlayer = { player: User; condition: string };
 export type ConfirmedPlayer = {
   player: User | GuildMember;

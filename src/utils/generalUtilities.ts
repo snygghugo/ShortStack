@@ -21,10 +21,10 @@ export const shuffle = <Type>(array: Type[]): Type[] => {
 };
 
 export const getHandle = (player: User | GuildMember) => {
-  if (player instanceof User) {
-    return player.username;
+  if (player instanceof GuildMember) {
+    return player.nickname || player.user.username;
   }
-  return player.nickname || player.user.username;
+  return player.username;
 };
 
 export const tsCompliantIncludes = (array: any[], x: any) => {

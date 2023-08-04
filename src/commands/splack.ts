@@ -1,26 +1,16 @@
 import {
   ChatInputCommandInteraction,
-  GuildMember,
   SlashCommandBuilder,
   SlashCommandUserOption,
-  User,
 } from 'discord.js';
 import { shuffle } from '../utils/generalUtilities';
 import { getHandle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getSettings, getPreferences } from '../database/db';
+import { PlayerObject } from '../utils/types';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;
-
-export type PlayerObject = {
-  user: User | GuildMember;
-  handle: string;
-  position: string;
-  preferences: string[];
-  randomed: number;
-  avatar?: ArrayBuffer;
-};
 
 const createPlayerArray = async (
   interaction: ChatInputCommandInteraction
