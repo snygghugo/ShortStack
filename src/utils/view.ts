@@ -120,7 +120,9 @@ export const stringPrettifier = (player: PlayerObject) => {
 export const stringPrettifierForYapos = (string: string) => {
   const optimalStringLength = 39;
   const neededFilling = optimalStringLength - string.length;
-  const stringFilling = '\u200b'.repeat(neededFilling + 1);
+  const stringFilling = ' '.repeat(neededFilling + 1);
+  // const stringFilling = '\u200b'.repeat(neededFilling + 1);
+
   return `${string}${stringFilling}`;
 };
 

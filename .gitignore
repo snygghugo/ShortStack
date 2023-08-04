@@ -4,3 +4,4 @@ src/config.json
 .DS_Store
 dist
 .vscode
+settings.json
