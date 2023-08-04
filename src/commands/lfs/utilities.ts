@@ -62,7 +62,7 @@ export const playerIdentity = (
 //   }
 // };
 
-export const eRemover = (
+export const removeFromArray = (
   array: ConfirmedPlayer[] | ConfirmedPlayer[],
   interaction: ButtonInteraction
 ) => {

@@ -12,7 +12,7 @@ import {
   Collection,
 } from 'discord.js';
 import {
-  eRemover as removeFromArray,
+  removeFromArray,
   getTimestamp,
   handleIt,
   forceReady,
@@ -21,13 +21,8 @@ import {
   playerIdentityConfirmedPlayer,
   playerIdentityGuildMember,
 } from './utilities';
-import {
-  stringPrettifierForYapos,
-  createButtonRow,
-  inOutBut,
-  rdyButtons,
-  modalComponent,
-} from '../../utils/view';
+import { createButtonRow, modalComponent } from '../../utils/view';
+import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
 import {
   ConditionalPlayer,
@@ -48,15 +43,6 @@ const FIVEMINUTES = 5 * 60;
 const READYTIME = 2 * 60;
 const buttonOptions = { in: 'in', out: 'out', dummy: 'dummy', condi: 'condi' };
 const readyOptions = { rdy: 'rdy', stop: 'stop', sudo: 'sudo', ping: 'ping' };
-
-const readyColours = {
-  0: 0x000000, //black
-  1: 0xcc3300, //red
-  2: 0xff9900,
-  3: 0xffff00, //yellow
-  4: 0xccff33,
-  5: 0x99ff33, //green
-};
 
 // const invokeQueue = async (interaction: Interaction) => { //BELOW WE NEED THE QUEUE FOR THIS TO WORK
 //   const queuer = { id: interaction.user.toString() };
@@ -110,7 +96,7 @@ export const setUp = async (
 
   const messageToSend = {
     content: `Calling all ${roleCall}! Closes <t:${time + ONEHOUR}:R>`, //this will later be messageContent
-    embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
 
@@ -212,7 +198,7 @@ export const setUp = async (
     }
     if (!i.replied) {
       await i.update({
-        embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+        embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
       });
     }
   });
@@ -518,7 +504,7 @@ async function dummySystem(
     });
   if (!submitted) {
     await interaction.update({
-      embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     });
     return;
   }
@@ -532,7 +518,7 @@ async function dummySystem(
   if (!submitted.isFromMessage())
     throw new Error("Somehow this modal isn't from a message");
   await submitted.update({
-    embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
   });
 }
 
@@ -565,7 +551,7 @@ async function modalThing(
     });
   if (!submitted) {
     await interaction.update({
-      embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     });
     return;
   }
@@ -578,72 +564,6 @@ async function modalThing(
     throw new Error("Somehow this modal isn't from a message");
 
   await submitted.update({
-    embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
+    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
   });
-}
-
-function prettyEmbed(
-  confirmedPlayers: ConfirmedPlayer[],
-  condiPlayers: ConditionalPlayer[]
-) {
-  const maxLength = 5;
-  const playerFields = [];
-  const conditionalFields: string[] = [];
-  const embedFields = [];
-  for (let i = 0; i < maxLength; i++) {
-    if (confirmedPlayers[i]) {
-      playerFields.push(
-        confirmedPlayers[i].player.toString() +
-          (confirmedPlayers[i].representing || '')
-      );
-    } else {
-      playerFields.push(`${`\`\`Open slot\`\``}`);
-    }
-  }
-  embedFields.push({
-    name: "*Who's up for Dota?*",
-    value: playerFields.join('\n'),
-  });
-
-  if (condiPlayers.length > 0) {
-    condiPlayers.map(e => {
-      conditionalFields.push(`${e.player} ${e.condition}`);
-    });
-    embedFields.push({
-      name: '*Conditionally In*',
-      value: conditionalFields.join('\n'),
-    });
-  }
-
-  const embed = {
-    color: readyColours[confirmedPlayers.length as keyof typeof readyColours],
-    fields: embedFields,
-  };
-  return embed;
-}
-
-function readyEmbed(readyArray: PlayerToReady[]) {
-  const playerFields = [];
-  let rAmount = 0;
-  for (let player of readyArray) {
-    if (player.ready) {
-      rAmount++;
-      playerFields.push(
-        `${stringPrettifierForYapos(player.gamer.toString())} \`\`readied in ${
-          player.pickTime / 1000
-        }\`\`✅`
-      );
-    } else {
-      playerFields.push(
-        `${stringPrettifierForYapos(player.gamer.toString())}❌`
-      );
-    }
-  }
-  const embed = {
-    color: readyColours[rAmount as keyof typeof readyColours],
-    fields: [
-      { name: '**R E A D Y  C H E C K**', value: playerFields.join('\n') },
-    ],
-  };
-  return embed;
 }

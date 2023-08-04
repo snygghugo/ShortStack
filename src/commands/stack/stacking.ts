@@ -1,20 +1,17 @@
 //Consistency in playerArray/updatedArray/objectArray
 
 import {
-  AttachmentBuilder,
   ChatInputCommandInteraction,
   Message,
   BaseInteraction,
   ButtonInteraction,
   User,
 } from 'discord.js';
-import Canvas from '@napi-rs/canvas';
-import { PlayerObject, NextUp } from '../../utils/types';
-import { getHandle } from '../../utils/generalUtilities';
 import { request } from 'undici';
-import { shuffle } from '../../utils/generalUtilities';
+import { PlayerObject, NextUp } from '../../utils/types';
+import { getHandle, shuffle } from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
-import { createRoleRows, prettyEmbed } from '../../utils/view';
+import { createRoleRows, stackEmbed } from './view';
 
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
@@ -75,7 +72,7 @@ async function stackExecute(
   const available = availableRoles(updatedArray);
   const nextUp = whosNext(updatedArray);
   const buttonRows = createRoleRows(nextUp, available);
-  const embed = await prettyEmbed(updatedArray, nextUp, interaction);
+  const embed = await stackEmbed(updatedArray, nextUp, interaction);
 
   if (!nextUp) {
     await message.edit({
