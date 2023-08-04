@@ -19,8 +19,8 @@ export const modalComponent = (reasonInput: TextInputBuilder) => {
 };
 
 export const createButton = (
-  btnText: string,
   btnId: string,
+  btnText: string,
   btnStyle: ButtonStyle = ButtonStyle.Secondary
 ) =>
   new ButtonBuilder().setCustomId(btnId).setLabel(btnText).setStyle(btnStyle);
@@ -31,7 +31,7 @@ export const createButtonRow = (
   btnStyle: ButtonStyle = ButtonStyle.Secondary
 ) => {
   const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    createButton(btnText, btnId, btnStyle)
+    createButton(btnId, btnText, btnStyle)
   );
   return button;
 };

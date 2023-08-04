@@ -9,6 +9,7 @@ import {
   AnyThreadChannel,
   GuildMember,
   ButtonInteraction,
+  Collection,
 } from 'discord.js';
 import {
   eRemover as removeFromArray,
@@ -384,21 +385,22 @@ async function redoCollector(
     await handleIt(i, 'Again!');
   });
 
-  collector.on('end', async (collected: any) => {
-    //REMOVE THIS ANY
-    console.log('this is collected', collected);
-    switch (collected.last()?.customId) {
-      case 'redo':
-        readyChecker(confirmedPlayers, partyMessage, partyThread);
-        return;
-      default:
-        await partyMessage.edit({
-          content: 'Ready check failed.',
-          components: [],
-        });
-        break;
+  collector.on(
+    'end',
+    async (collected: Collection<string, ButtonInteraction>) => {
+      switch (collected.last()?.customId) {
+        case 'redo':
+          readyChecker(confirmedPlayers, partyMessage, partyThread);
+          return;
+        default:
+          await partyMessage.edit({
+            content: 'Ready check failed.',
+            components: [],
+          });
+          break;
+      }
     }
-  });
+  );
 }
 async function pThreadCreator(
   interaction: ChatInputCommandInteraction,
