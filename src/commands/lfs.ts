@@ -3,7 +3,7 @@ import {
   ChatInputCommandInteraction,
   CommandInteraction,
 } from 'discord.js';
-import { setUp, arrayMaker } from '../working/yapos';
+import { setUp, arrayMaker } from './lfs/yapos';
 import { SlashCommandBuilder } from 'discord.js';
 
 module.exports = {

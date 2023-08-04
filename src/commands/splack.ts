@@ -4,10 +4,10 @@ import {
   SlashCommandBuilder,
   User,
 } from 'discord.js';
-import { HugoData, getPreferences, shuffle } from '../utils/utilities';
-import { promises as fs } from 'fs';
-import { getSettings, getHandle } from '../utils/utilities';
-import { stackSetup } from '../discordLogic/stacking';
+import { getPreferences, shuffle } from '../utils/utilities';
+import { getHandle } from '../utils/utilities';
+import { stackSetup } from './stack/stacking';
+import { getSettings } from '../database/db';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;

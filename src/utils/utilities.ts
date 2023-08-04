@@ -5,7 +5,15 @@ export type HugoData = {
   [guild: string]: {
     players: { [player: string]: string[] };
     yaposChannel?: string;
+    trashChannel?: string;
+    yaposRole?: string;
   };
+};
+
+export type SettingsOptions = {
+  stacks?: string;
+  role?: string;
+  trash?: string;
 };
 
 export function shuffle([...array]) {
@@ -35,13 +43,6 @@ export const getHandle = (player: User | GuildMember) => {
   return player.nickname || player.user.username;
 };
 
-export const getSettings = async (): Promise<HugoData> => {
-  const settingsObject = JSON.parse(
-    await fs.readFile('settings.json', 'utf-8')
-  );
-  return settingsObject;
-};
-
 export const getPreferences = (
   user: User | GuildMember,
   settingsObject: HugoData,
@@ -56,37 +57,7 @@ export const getPreferences = (
   return ['fill'];
 };
 
-export const saveYapos = async (
-  interaction: ChatInputCommandInteraction,
-  channel: string
-) => {
-  if (!interaction.guildId) throw new Error('Something with guildId');
-  const settings = await getSettings();
-  if (!(interaction.guildId in settings))
-    settings[interaction.guildId] = { players: {} };
-
-  settings[interaction.guildId].yaposChannel = channel;
-  await writeSettings(settings);
-};
-
-export const savePreferences = async (
-  interaction: ChatInputCommandInteraction,
-  choices: string[]
-) => {
-  if (!interaction.guildId) throw new Error('Something with guildId');
-  const settings = await getSettings();
-  if (!(interaction.guildId in settings)) {
-    settings[interaction.guildId] = { players: {} };
-  }
-  settings[interaction.guildId].players[interaction.user.toString()] = choices;
-  await writeSettings(settings);
-};
-
 export const tsCompliantIncludes = (array: any[], x: any) => {
   if (!x) return false;
   return array.includes(x);
-};
-
-const writeSettings = async (settings: object) => {
-  await fs.writeFile('settings.json', JSON.stringify(settings), 'utf-8');
 };

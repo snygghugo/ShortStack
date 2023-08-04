@@ -1,13 +1,7 @@
-import {
-  ChatInputCommandInteraction,
-  Message,
-  MessageReaction,
-  SlashCommandBuilder,
-  User,
-} from 'discord.js';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { prefEmbedMaker } from '../utils/view';
-import { savePreferences } from '../utils/utilities';
-import { reactionCollector } from '../discordLogic/reactionsCollector';
+import { reactionCollector } from './stack/reactionsCollector';
+import { savePreferences } from '../database/db';
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -23,7 +17,6 @@ module.exports = {
       createdMessage,
       interactionUser
     );
-
     savePreferences(interaction, chosenRoles);
   },
 };

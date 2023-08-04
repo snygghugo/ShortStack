@@ -13,49 +13,38 @@ import {
   StringSelectMenuInteraction,
   ButtonInteraction,
   User,
+  AnyThreadChannel,
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
-import { PlayerObject } from '../commands/splack';
-import { getHandle, getSettings } from '../utils/utilities';
+import { PlayerObject } from '../splack';
+import { getHandle } from '../../utils/utilities';
 import { request } from 'undici';
-import { shuffle } from '../utils/utilities';
+import { shuffle } from '../../utils/utilities';
+import { getChannelFromSettings } from '../../database/db';
 
 interface NextUp extends PlayerObject {
   fillFlag: boolean;
 }
 
-const getAppropriateChannel = async (
-  interaction: ChatInputCommandInteraction | ButtonInteraction
-): Promise<TextChannel> => {
-  if (!interaction.guildId) throw new Error('GuildId Issues');
-  if (!interaction.channel?.id) throw new Error('ChannelID issues');
-  const settings = await getSettings();
-  let whereToPost = interaction.guild?.channels.cache.get(
-    interaction.channel?.id
-  );
-  const yaposChannel = settings[interaction.guildId]?.yaposChannel;
-  if (yaposChannel) {
-    whereToPost = interaction.guild?.channels.cache.get(yaposChannel);
-  }
-  return whereToPost as TextChannel;
-};
-
-// module.exports = {
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
   playerArray: PlayerObject[],
-  pickTime: number
+  pickTime: number,
+  oldMessage?: Message<true>
 ) => {
   interaction.deferReply();
   if (!interaction.guildId) throw new Error('GuildId Issues');
   interaction.deleteReply();
-  const channel = await getAppropriateChannel(interaction);
-  const message = await channel.send('Setting up the beauty...');
-  message.startThread({
-    name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
-    autoArchiveDuration: 60,
-    reason: 'Time for stack!',
-  });
+  const channel = await getChannelFromSettings(interaction, 'dota');
+  const message =
+    oldMessage || (await channel.send('Setting up the beauty...'));
+  if (!oldMessage) {
+    await message.startThread({
+      name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
+      autoArchiveDuration: 60,
+      reason: 'Time for stack!',
+    });
+  }
   stackExecute(playerArray, message, pickTime, interaction);
 };
 // };

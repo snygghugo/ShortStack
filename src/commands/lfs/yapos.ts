@@ -24,26 +24,25 @@ import {
   forceReady,
   everyoneReady,
   pingMessage,
-  playerIdentity,
   modalComponent,
   playerIdentityConfirmedPlayer,
   playerIdentityGuildMember,
 } from './utilities';
-import { stackSetup } from '../discordLogic/stacking';
+import { stackSetup } from '../stack/stacking';
 import { ConditionalPlayer, ConfirmedPlayer, PlayerToReady } from './types';
-import { getPreferences, getSettings, getHandle } from '../utils/utilities';
+import { getPreferences, getHandle } from '../../utils/utilities';
+import {
+  getDotaRole,
+  getChannelFromSettings,
+  getSettings,
+} from '../../database/db';
 
 const standardTime = 60;
-const TRASH_CHANNEL = '539847809004994560'; //shit thread
-//const TRASH_CHANNEL = "1057444797301923860"; yapos thread
 const ONEHOUR = 60 * 60;
 const FIVEMINUTES = 5 * 60;
 const READYTIME = 2 * 60;
 const buttonOptions = { in: 'in', out: 'out', dummy: 'dummy', condi: 'condi' };
 const readyOptions = { rdy: 'rdy', stop: 'stop', sudo: 'sudo', ping: 'ping' };
-
-const debug = ['<@&412260353699872768>', 'test yapos'];
-const yapos = debug[0];
 
 const readyColours = {
   0: 0x000000, //black
@@ -95,15 +94,19 @@ export const setUp = async (
   interaction: ChatInputCommandInteraction,
   confirmedPlayers: ConfirmedPlayer[]
 ) => {
-  //Embed görare
+  if (!interaction.guildId)
+    throw new Error('Somehow there is a lacking GuildId in setUp!');
+  const roleCall = await getDotaRole(interaction.guildId);
   const condiPlayers: ConditionalPlayer[] = [];
   // messageContent = await messageMaker(interaction);
   const messageToSend = {
-    content: 'Placeholder text', //FIX THIS
+    content: `Calling all ${roleCall}`,
     embeds: [prettyEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
-  const dotaMessage = await interaction.channel?.send(messageToSend);
+
+  const dotaChannel = await getChannelFromSettings(interaction, 'dota');
+  const dotaMessage = await dotaChannel.send(messageToSend);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   confirmedPlayers.forEach(p => partyThread.members.add(p.player));
@@ -176,7 +179,6 @@ export const setUp = async (
             );
         }
         const dummyArray = [...dummyCollection?.values()];
-        console.log('this is the dummy array', dummyArray);
         const dummy = shuffle(dummyArray)[0];
         if (dummy) {
           await dummySystem(i, condiPlayers, confirmedPlayers, dummy);
@@ -221,7 +223,7 @@ export const setUp = async (
 
 async function readyChecker(
   confirmedPlayers: ConfirmedPlayer[],
-  partyMessage: Message,
+  partyMessage: Message<true>,
   partyThread: AnyThreadChannel
 ) {
   const readyArray: PlayerToReady[] = [];
@@ -333,7 +335,7 @@ async function readyChecker(
         content: finalMessage,
         components: [stackButton],
       });
-      await stackIt(partyMessage, confirmedPlayers); //recently removed partyThread as the third argument?
+      await stackIt(partyMessage, confirmedPlayers, partyThread); //recently removed partyThread as the third argument?
     }
   });
 
@@ -346,7 +348,7 @@ async function readyChecker(
 }
 
 async function redoCollector(
-  partyMessage: Message,
+  partyMessage: Message<true>,
   confirmedPlayers: ConfirmedPlayer[],
   partyThread: AnyThreadChannel
 ) {
@@ -388,7 +390,11 @@ async function pThreadCreator(
   return partyThread;
 }
 
-async function stackIt(message: Message, confirmedPlayers: ConfirmedPlayer[]) {
+async function stackIt(
+  message: Message<true>,
+  confirmedPlayers: ConfirmedPlayer[],
+  partyThread?: AnyThreadChannel
+) {
   const filter = (i: CollectedInteraction) =>
     i.message?.id === message.id && i.customId === 'stack';
   const collector = message.channel.createMessageComponentCollector({
@@ -432,26 +438,24 @@ async function stackIt(message: Message, confirmedPlayers: ConfirmedPlayer[]) {
           preferences,
           randomed: 0,
         };
-      }); //badaBing (now called stackSetup) takes an array of player IDs, not player objects
+      });
       const shuffledChoices = shuffle(choices);
       const { member } = interaction;
       if (!member) throw new Error('Interaction has no member!');
       if (!(member instanceof GuildMember))
         throw new Error('This is somehow the wrong guildmember object');
-      const channel = member.guild.channels.cache.get(TRASH_CHANNEL);
-      if (channel?.type !== ChannelType.GuildText)
-        throw new Error('The trash channel was not a text channel!');
-      const stackThread = await channel?.threads.create({
-        name: interaction?.user.username + "'s Dota Party",
-        autoArchiveDuration: 60,
-        reason: 'Time for stack!',
-      });
-      await stackSetup(interaction, shuffledChoices, standardTime); //FIX THIS
-      const button = linkButton(stackThread, 'Stack Thread');
-      await message.edit({
-        content: 'Stack is running in the Stack Thread!',
-        components: [button],
-      });
+      // const trashChannel = await getChannelFromSettings(interaction, 'trash');
+      // const stackThread = await trashChannel?.threads.create({
+      //   name: interaction?.user.username + "'s Dota Party",
+      //   autoArchiveDuration: 60,
+      //   reason: 'Time for stack!',
+      // });
+      await stackSetup(interaction, shuffledChoices, standardTime, message); //FIX THIS
+      // const button = linkButton(stackThread, 'Stack Thread');
+      // await message.edit({
+      //   content: 'Stack is running in the Stack Thread!',
+      //   components: [button],
+      // }); THIS GUY IS A LIE, DOES NOTHING ATM
     } else {
       await message.edit({
         content: "You actually don't seem all that ready.",
