@@ -1,0 +1,26 @@
+{
+  "name": "shortstackpub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "build:watch": "npm run build -- --watch src/*.ts",
+    "dev": "ts-node src/index.ts",
+    "dev:watch": "npm run dev -- --watch src/*.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.41",
+    "discord.js": "^14.11.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.4",
+    "@types/node": "^20.2.1"
+  }
+}
