@@ -1,4 +1,5 @@
 import { GuildMember, User } from 'discord.js';
+import { Dummy } from './types';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
@@ -20,11 +21,18 @@ export const shuffle = <Type>(array: Type[]): Type[] => {
   return array;
 };
 
-export const getHandle = (player: User | GuildMember) => {
+export const getHandle = (player: User | GuildMember | Dummy) => {
   if (player instanceof GuildMember) {
     return player.nickname || player.user.username;
   }
   return player.username;
+};
+
+export const getNameWithPing = (user: User | GuildMember | Dummy) => {
+  if ('isDummy' in user) {
+    return `@${user.id}`;
+  }
+  return user;
 };
 
 export const tsCompliantIncludes = (array: any[], x: any) => {

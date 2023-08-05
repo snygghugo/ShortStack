@@ -16,6 +16,7 @@ import {
   inOutButLabels,
   rdyButtonsLabels,
 } from '../../utils/textContent';
+import { getNameWithPing } from '../../utils/generalUtilities';
 
 export const inOutBut = () => {
   const { join, leave, dummy, condi } = stackButtonCustomIds;
@@ -53,10 +54,7 @@ export const roleCallEmbed = (
   const embedFields = [];
   for (let i = 0; i < maxLength; i++) {
     if (confirmedPlayers[i]) {
-      playerFields.push(
-        confirmedPlayers[i].player.toString() +
-          (confirmedPlayers[i].representing || '')
-      );
+      playerFields.push(getNameWithPing(confirmedPlayers[i].player).toString());
     } else {
       playerFields.push(open);
     }
@@ -91,7 +89,9 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
     fields: [
       {
         name: readyHeading,
-        value: readyArray.map(({ gamer }) => gamer.toString()).join('\n'),
+        value: readyArray
+          .map(({ gamer }) => getNameWithPing(gamer).toString())
+          .join('\n'),
         inline: true,
       },
       {

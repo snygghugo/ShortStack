@@ -1,7 +1,7 @@
 import { User, GuildMember } from 'discord.js';
 
 export type PlayerObject = {
-  user: User | GuildMember;
+  user: User | GuildMember | Dummy;
   handle: string;
   position: string;
   preferences: string[];
@@ -12,14 +12,22 @@ export type PlayerObject = {
 export interface NextUp extends PlayerObject {
   fillFlag: boolean;
 }
-
 export type ConditionalPlayer = { player: User; condition: string };
 export type ConfirmedPlayer = {
-  player: User | GuildMember;
-  representing?: string;
+  player: User | GuildMember | Dummy;
 };
+
+export type Dummy = {
+  name: string;
+  id: string;
+  username: string;
+  user: { username: string };
+  displayAvatarURL: () => string;
+  isDummy: boolean;
+};
+
 export type PlayerToReady = {
-  gamer: User | GuildMember;
+  gamer: User | GuildMember | Dummy;
   ready: boolean;
   pickTime: number;
 };

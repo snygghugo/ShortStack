@@ -9,8 +9,12 @@ import {
   CollectedInteraction,
 } from 'discord.js';
 import { request } from 'undici';
-import { PlayerObject, NextUp } from '../../utils/types';
-import { getHandle, shuffle } from '../../utils/generalUtilities';
+import { PlayerObject, NextUp, Dummy } from '../../utils/types';
+import {
+  getHandle,
+  getNameWithPing,
+  shuffle,
+} from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 
@@ -90,7 +94,9 @@ async function stackExecute(
   const spaghettiTime = -1; //HURRY UP
 
   await message.edit({
-    content: `${nextUp.user.toString()} You're up! If you do not pick you will be assigned ${assignedRole} in <t:${
+    content: `${getNameWithPing(
+      nextUp.user
+    )} You're up! If you do not pick you will be assigned ${assignedRole} in <t:${
       time + pickTime + spaghettiTime
     }:R>`,
     embeds: [embed.embed],

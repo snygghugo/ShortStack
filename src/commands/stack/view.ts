@@ -62,8 +62,10 @@ const artTime = async (playerArray: PlayerObject[]) => {
 
 const finalMessageMaker = (playerArray: PlayerObject[]) => {
   const copyCodeCommand = [
-    '/stack', //REMEMBER: change this to stack
-    ...playerArray.map((player, i) => `p${i + 1}:${player.user.toString()}`),
+    '/stack',
+    ...playerArray
+      .filter(({ user }) => !('isDummy' in user))
+      .map(({ user }, i) => `p${i + 1}:${user}`),
   ];
   const finalArray = playerArray.map(player => {
     if (player.randomed > 0) {
@@ -84,12 +86,11 @@ export const stackEmbed = async (
   nextUp: NextUp | null,
   interaction: ChatInputCommandInteraction | ButtonInteraction
 ) => {
-  const playerFields: string[] = [];
-  playerArray.forEach(async player => {
-    const member = await interaction.guild?.members.fetch(player.user.id);
-    if (!member) throw new Error('Issues making a member!');
-    playerFields.push(stringPrettifier(player));
-  });
+  // const playerFields: string[] = [];
+  const playerFields = playerArray.map(player => stringPrettifier(player));
+  // playerArray.forEach(async player => {
+  //   playerFields.push(stringPrettifier(player));
+  // });
   const art = await artTime(playerArray);
   if (nextUp) {
     const embed = {

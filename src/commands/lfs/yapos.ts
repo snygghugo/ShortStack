@@ -10,6 +10,7 @@ import {
   GuildMember,
   ButtonInteraction,
   ComponentType,
+  User,
 } from 'discord.js';
 import {
   removeFromArray,
@@ -103,7 +104,14 @@ export const setUp = async (
   const dotaMessage = await dotaChannel.send(setUpMessage);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
-  confirmedPlayers.forEach(p => partyThread.members.add(p.player));
+  const confirmedPlayersWithoutDummies = confirmedPlayers.filter(
+    (p): p is { player: GuildMember | User } => {
+      return !('isDummy' in p);
+    }
+  );
+  confirmedPlayersWithoutDummies.forEach(p =>
+    partyThread.members.add(p.player)
+  );
   if (confirmedPlayers.length > 4) {
     //CHECK IF THIS IS WHERE THE BUG IS? CONSOLE LOG THAT FUCKER OUT OF ORBIT
     //it's not here :/
@@ -168,7 +176,6 @@ export const setUp = async (
             'The dummy array was unable to be created from cache!'
           );
         if ([...dummyCollection].length < 5) {
-          console.log('Fetching more dummys');
           dummyCollection = (await interaction.guild?.members.fetch())?.filter(
             dummy =>
               dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
@@ -181,7 +188,37 @@ export const setUp = async (
         const dummyArray = [...dummyCollection?.values()];
         const [dummy] = shuffle(dummyArray);
         if (dummy) {
-          await dummySystem(i, condiPlayers, confirmedPlayers, dummy);
+          const modalInteraction = await dummySystem(
+            i,
+            condiPlayers,
+            confirmedPlayers,
+            dummy
+          );
+          if (!modalInteraction)
+            throw new Error('There is some error with the modalInteraction');
+          if (!modalInteraction.isFromMessage())
+            throw new Error('Somehow modalInteraction is not from message');
+          const newGuyName =
+            modalInteraction.fields.getTextInputValue('avatar') || 'Ghost';
+
+          if (!newGuyName) break;
+
+          const newGuy = {
+            player: {
+              name: newGuyName,
+              id: newGuyName,
+              username: newGuyName,
+              user: {
+                username: newGuyName,
+              },
+              displayAvatarURL: () => 'https://laggan.online/foppa.gif',
+              isDummy: true,
+            },
+          };
+          confirmedPlayers.push(newGuy);
+          await modalInteraction.update({
+            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+          });
           if (confirmedPlayers.length > 4) {
             console.log(
               "That's enough! Stopping the collector from within the dummy array stuff"
@@ -475,8 +512,8 @@ export const dummySystem = async (
     .setTitle('Ok, buddy');
   const avatarInput = new TextInputBuilder()
     .setCustomId('avatar')
-    .setLabel('Which Dummy is the Dummy representing?')
-    .setPlaceholder('The Dummy this Dummy is representing is...')
+    .setLabel('Who are you adding?')
+    .setPlaceholder('This spot is meant to represent...')
     .setMaxLength(140)
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
@@ -486,6 +523,7 @@ export const dummySystem = async (
     .awaitModalSubmit({
       time: READYTIME * 1000,
       filter: i => i.user.id === interaction.user.id,
+      componentType: ComponentType.TextInput,
     })
     .catch(error => {
       console.error(error);
@@ -497,19 +535,57 @@ export const dummySystem = async (
     });
     return;
   }
-  const representing = ` *avatar of **${submitted.fields.getTextInputValue(
-    'avatar'
-  )}***`;
-  confirmedPlayers.push({
-    player: dummy,
-    representing: representing,
-  });
-  if (!submitted.isFromMessage())
-    throw new Error("Somehow this modal isn't from a message");
-  await submitted.update({
-    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-  });
+  return submitted;
 };
+
+// export const dummySystem = async (
+//   interaction: ButtonInteraction,
+//   condiPlayers: ConditionalPlayer[],
+//   confirmedPlayers: ConfirmedPlayer[],
+//   dummy: GuildMember
+// ) => {
+//   //this is  a little busy
+//   const modal = new ModalBuilder()
+//     .setCustomId('textCollector')
+//     .setTitle('Ok, buddy');
+//   const avatarInput = new TextInputBuilder()
+//     .setCustomId('avatar')
+//     .setLabel('Which Dummy is the Dummy representing?')
+//     .setPlaceholder('The Dummy this Dummy is representing is...')
+//     .setMaxLength(140)
+//     .setStyle(TextInputStyle.Short);
+//   const modalInput = modalComponent(avatarInput);
+//   modal.addComponents(modalInput);
+//   await interaction.showModal(modal);
+//   const submitted = await interaction
+//     .awaitModalSubmit({
+//       time: READYTIME * 1000,
+//       filter: i => i.user.id === interaction.user.id,
+//     })
+//     .catch(error => {
+//       console.error(error);
+//       return null;
+//     });
+//   if (!submitted) {
+//     await interaction.update({
+//       embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+//     });
+//     return;
+//   }
+//   const representing = ` *avatar of **${submitted.fields.getTextInputValue(
+//     'avatar'
+//   )}***`;
+
+//   confirmedPlayers.push({
+//     player: dummy,
+//     representing: representing,
+//   });
+//   if (!submitted.isFromMessage())
+//     throw new Error("Somehow this modal isn't from a message");
+// await submitted.update({
+//   embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+// });
+// };
 
 async function modalThing(
   interaction: ButtonInteraction,

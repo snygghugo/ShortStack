@@ -5,7 +5,7 @@ import {
   User,
   GuildMember,
 } from 'discord.js';
-import { HugoData, SettingsOptions } from '../utils/types';
+import { Dummy, HugoData, SettingsOptions } from '../utils/types';
 import { promises as fs } from 'fs';
 import { getHandle } from '../utils/generalUtilities';
 
@@ -17,7 +17,7 @@ export const getSettings = async (): Promise<HugoData> => {
 };
 
 export const getPreferences = (
-  user: User | GuildMember,
+  user: User | GuildMember | Dummy,
   settingsObject: HugoData,
   guildId: string
 ) => {
