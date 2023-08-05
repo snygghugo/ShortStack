@@ -7,7 +7,7 @@ What does she do? Everything. If you hate reading just [invite her over](https:/
 
 In short she allows you to create an LFG-like message in your server to announce that you wanna get a 5-stack going, collect whatever goons show up to your Dota call, and uses The Only Fair Principle In The Universe - randomness - to set roles. No more 
 
-> ”Wait I thought you were support?” ”Why do I never get to play 1?”
+> ”Wait I thought you were support?” ”Why do I never get to play mid?”
 > ”Why did you start a Dota stack without me, I informed you I was
 > interested by way of [esoteric communication interface here]”
 
