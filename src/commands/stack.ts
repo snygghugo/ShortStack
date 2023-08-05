@@ -12,9 +12,7 @@ import { PlayerObject } from '../utils/types';
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;
 
-const createPlayerArray = async (
-  interaction: ChatInputCommandInteraction
-): Promise<PlayerObject[]> => {
+const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
   const playerArray: PlayerObject[] = [];
   if (!interaction.guildId) return playerArray;
   let guildHasPreferences = false;
@@ -30,6 +28,7 @@ const createPlayerArray = async (
     if (!userToAdd) throw new Error('Unable to find user!');
     if (playerArray.some(({ user }) => user.id === userToAdd.id)) {
       interaction.reply('Please provide 5 unique players!');
+      return;
     }
     let preferences = ['fill'];
     if (guildHasPreferences) {
@@ -76,6 +75,7 @@ module.exports = {
   execute: async function setup(interaction: ChatInputCommandInteraction) {
     const pickTime = interaction.options.getInteger('time') || STANDARD_TIME;
     const playerArray = await createPlayerArray(interaction);
+    if (!playerArray) return;
     stackSetup(interaction, playerArray, pickTime);
   },
 };

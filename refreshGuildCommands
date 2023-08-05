@@ -10,7 +10,6 @@ const commandFiles = fs
 
 // Place your client and guild ids here
 const clientId = '1109079876713066518';
-const guildId = '209707792314007552';
 
 for (const file of commandFiles) {
   console.log('Reading this file', file);
@@ -25,7 +24,7 @@ const rest = new REST({ version: '10' }).setToken(token);
     console.log('Started refreshing application (/) commands.');
 
     // await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-    //   body: [],
+    //   body: commands,
     // });
     await rest.put(Routes.applicationCommands(clientId), {
       body: commands,

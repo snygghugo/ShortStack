@@ -3,9 +3,10 @@
 import {
   ChatInputCommandInteraction,
   Message,
-  BaseInteraction,
   ButtonInteraction,
   User,
+  ComponentType,
+  CollectedInteraction,
 } from 'discord.js';
 import { request } from 'undici';
 import { PlayerObject, NextUp } from '../../utils/types';
@@ -97,11 +98,13 @@ async function stackExecute(
     files: [embed.file],
   });
 
-  const filter = (i: BaseInteraction) => i.channel?.id === message.channel.id;
+  const filter = (i: CollectedInteraction) =>
+    i.channel?.id === message.channel.id;
   const collector = message.channel.createMessageComponentCollector({
     filter,
     time: pickTime * 1000,
     max: 1,
+    componentType: ComponentType.Button,
   });
   collector.on('collect', async i => {
     console.log(

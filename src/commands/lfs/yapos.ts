@@ -9,7 +9,7 @@ import {
   AnyThreadChannel,
   GuildMember,
   ButtonInteraction,
-  Collection,
+  ComponentType,
 } from 'discord.js';
 import {
   removeFromArray,
@@ -24,11 +24,7 @@ import {
 import { createButtonRow, modalComponent } from '../../utils/view';
 import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
-import {
-  ConditionalPlayer,
-  ConfirmedPlayer,
-  PlayerToReady,
-} from '../../utils/types';
+import { ConditionalPlayer, ConfirmedPlayer } from '../../utils/types';
 import { getHandle, shuffle } from '../../utils/generalUtilities';
 import {
   getDotaRole,
@@ -36,13 +32,15 @@ import {
   getSettings,
   getPreferences,
 } from '../../database/db';
-
-const standardTime = 60;
-const ONEHOUR = 60 * 60;
-const FIVEMINUTES = 5 * 60;
-const READYTIME = 2 * 60;
-const buttonOptions = { in: 'in', out: 'out', dummy: 'dummy', condi: 'condi' };
-const readyOptions = { rdy: 'rdy', stop: 'stop', sudo: 'sudo', ping: 'ping' };
+import {
+  ONEHOUR,
+  buttonOptions,
+  readyOptions,
+  READYTIME,
+  FIVEMINUTES,
+  standardTime,
+} from '../../utils/consts';
+import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 
 // const invokeQueue = async (interaction: Interaction) => { //BELOW WE NEED THE QUEUE FOR THIS TO WORK
 //   const queuer = { id: interaction.user.toString() };
@@ -73,8 +71,7 @@ export const createConfirmedPlayers = (
   for (let i = 2; i < 7; i++) {
     const player = interaction.options.getUser('p' + i);
     if (player) {
-      if (confirmedPlayers.includes({ player: player })) {
-        //does this comparison even work? I fiddled with it, I hope it does
+      if (confirmedPlayers.some(cP => cP.player.id === player.id)) {
         return;
       }
       confirmedPlayers.push({ player: player });
@@ -91,23 +88,29 @@ export const setUp = async (
     throw new Error('Somehow there is a lacking GuildId in setUp!');
   const condiPlayers: ConditionalPlayer[] = [];
   const roleCall = await getDotaRole(interaction.guildId);
+  const { setUpMessageContent: setUpMessageContent, outOfTime } =
+    lfsSetUpStrings;
   // messageContent = await messageMaker(interaction); REMAKE THIS GUY ONCE QUEUE IS FIGURED OUT
   const time = getTimestamp(1000);
 
-  const messageToSend = {
-    content: `Calling all ${roleCall}! Closes <t:${time + ONEHOUR}:R>`, //this will later be messageContent
+  const setUpMessage = {
+    content: setUpMessageContent(roleCall, time + ONEHOUR), //this will later be messageContent
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
 
   const dotaChannel = await getChannelFromSettings(interaction, 'dota');
-  const dotaMessage = await dotaChannel.send(messageToSend);
+  const dotaMessage = await dotaChannel.send(setUpMessage);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   confirmedPlayers.forEach(p => partyThread.members.add(p.player));
   if (confirmedPlayers.length > 4) {
     //CHECK IF THIS IS WHERE THE BUG IS? CONSOLE LOG THAT FUCKER OUT OF ORBIT
+    //it's not here :/
     // ljudGöraren.ljudGöraren(userToMember(confirmedPlayers, interaction));
+    console.log(
+      'Now I am right before running the ready checker in the confirmedPlayers.length condition'
+    );
     readyChecker(confirmedPlayers, dotaMessage, partyThread);
     return;
   }
@@ -117,9 +120,10 @@ export const setUp = async (
   const collector = dotaMessage.channel.createMessageComponentCollector({
     filter,
     time: ONEHOUR * 1000,
+    componentType: ComponentType.Button,
   });
   console.log('setUp: on collect');
-  collector.on('collect', async (i: ButtonInteraction) => {
+  collector.on('collect', async i => {
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
       case buttonOptions.in:
@@ -156,8 +160,7 @@ export const setUp = async (
       case buttonOptions.dummy:
         let dummyCollection = interaction.guild?.members.cache.filter(
           dummy =>
-            dummy.user.bot &&
-            !confirmedPlayers.find((d: ConfirmedPlayer) => d.player == dummy)
+            dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
         );
         //FETCH MORE IF THE DUMMY COLLECTION IS SHORT
         if (!dummyCollection)
@@ -168,8 +171,7 @@ export const setUp = async (
           console.log('Fetching more dummys');
           dummyCollection = (await interaction.guild?.members.fetch())?.filter(
             dummy =>
-              dummy.user.bot &&
-              !confirmedPlayers.find((d: ConfirmedPlayer) => d.player == dummy)
+              dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
           );
           if (!dummyCollection)
             throw new Error(
@@ -177,7 +179,7 @@ export const setUp = async (
             );
         }
         const dummyArray = [...dummyCollection?.values()];
-        const dummy = shuffle(dummyArray)[0];
+        const [dummy] = shuffle(dummyArray);
         if (dummy) {
           await dummySystem(i, condiPlayers, confirmedPlayers, dummy);
           if (confirmedPlayers.length > 4) {
@@ -204,10 +206,10 @@ export const setUp = async (
   });
 
   console.log('setUp: on end');
-  collector.on('end', async collected => {
+  collector.on('end', async () => {
     if (confirmedPlayers.length < 5) {
       await dotaMessage.edit({
-        content: 'Looks like you ran out of time, darlings!',
+        content: outOfTime,
         components: [],
       });
     } else {
@@ -227,23 +229,34 @@ async function readyChecker(
   partyMessage: Message<true>,
   partyThread: AnyThreadChannel
 ) {
-  const readyArray: PlayerToReady[] = [];
+  const {
+    partyMessageContent,
+    failedMessageContent,
+    stoppedMessageContent,
+    finalMessageContent,
+  } = readyCheckerStrings;
+  // const readyArray: PlayerToReady[] = [];
+  const readyArray = confirmedPlayers.map(({ player }) => ({
+    gamer: player,
+    ready: false,
+    pickTime: 0,
+  }));
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);
-  for (let player of confirmedPlayers) {
-    readyArray.push({ gamer: player.player, ready: false, pickTime: 0 });
-  }
+  // for (let player of confirmedPlayers) {
+  //   readyArray.push({ gamer: player.player, ready: false, pickTime: 0 });
+  // }
   const filter = (i: CollectedMessageInteraction) =>
     i.channel?.id === partyMessage.channel.id && i.customId in readyOptions;
-
   const collector = partyMessage.channel.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
+    componentType: ComponentType.Button,
   });
   //THIS GUY IS NEW HERE, HE USED TO BE DOWN BELOW!
   const embed = readyEmbed(readyArray);
   await partyMessage.edit({
-    content: `Ready check closes <t:${time + READYTIME}:R>`,
+    content: partyMessageContent(time + READYTIME),
     embeds: [embed],
     components: rdyButtons(),
   });
@@ -265,16 +278,13 @@ async function readyChecker(
           collector.stop("That's enough");
         }
         break;
-
       case readyOptions.stop:
         collector.stop('Someone wants out!');
         break;
-
       case readyOptions.sudo:
         forceReady(readyArray, pickTime, miliTime);
         collector.stop();
         break;
-
       case readyOptions.ping:
         await i.deferReply();
         pingMessage(readyArray, partyThread);
@@ -304,12 +314,9 @@ async function readyChecker(
       const redoButton = createButtonRow('Re-Check', 'redo');
       switch (collected.last()?.customId) {
         case readyOptions.stop:
+          const stopper = collected.last()?.member?.toString() || 'Someone';
           await partyMessage.edit({
-            content: `${collected
-              .last()
-              ?.member?.toString()} stopped the ready check. Option to Re-Check closes <t:${
-              time + FIVEMINUTES
-            }:R>`,
+            content: stoppedMessageContent(stopper, time + FIVEMINUTES),
             components: [redoButton],
           });
           await redoCollector(partyMessage, confirmedPlayers, partyThread);
@@ -317,9 +324,7 @@ async function readyChecker(
 
         default:
           await partyMessage.edit({
-            content: `Ready check failed after ${READYTIME.toString()} seconds. Option to Re-Check closes <t:${
-              time + FIVEMINUTES
-            }:R>`,
+            content: failedMessageContent(READYTIME, time + FIVEMINUTES),
             components: [redoButton],
           });
           await redoCollector(partyMessage, confirmedPlayers, partyThread);
@@ -327,20 +332,8 @@ async function readyChecker(
       }
     } else {
       const stackButton = createButtonRow('Stack it!', 'stack');
-      let finalMessage = '';
-      switch (collected.last()?.customId) {
-        case readyOptions.sudo:
-          const readyLast = collected.last()?.member?.toString();
-          finalMessage = `${readyLast} used FORCED READY! You should be safe to stack, if not blame ${readyLast}`;
-          break;
-
-        case readyOptions.rdy:
-        case readyOptions.ping: //in freak cases "ping" can be the last one
-          finalMessage = "Everyone's ready!";
-          break;
-      }
       await partyMessage.edit({
-        content: finalMessage,
+        content: finalMessageContent(collected),
         components: [stackButton],
       });
       await stackIt(partyMessage, confirmedPlayers, partyThread);
@@ -366,39 +359,34 @@ async function redoCollector(
     filter,
     time: FIVEMINUTES * 1000,
     max: 1,
+    componentType: ComponentType.Button,
   });
-  collector.on('collect', async (i: CollectedInteraction) => {
-    await handleIt(i, 'Again!');
-  });
-
-  collector.on(
-    'end',
-    async (collected: Collection<string, ButtonInteraction>) => {
-      switch (collected.last()?.customId) {
-        case 'redo':
-          readyChecker(confirmedPlayers, partyMessage, partyThread);
-          return;
-        default:
-          await partyMessage.edit({
-            content: 'Ready check failed.',
-            components: [],
-          });
-          break;
-      }
+  collector.on('collect', async i => await handleIt(i, 'Again!'));
+  collector.on('end', async collected => {
+    switch (collected.last()?.customId) {
+      case 'redo':
+        readyChecker(confirmedPlayers, partyMessage, partyThread);
+        return;
+      default:
+        await partyMessage.edit({
+          content: 'Ready check failed.',
+          components: [],
+        });
+        break;
     }
-  );
+  });
 }
-async function pThreadCreator(
+const pThreadCreator = async (
   interaction: ChatInputCommandInteraction,
   dotaMessage: Message
-) {
+) => {
   const partyThread = await dotaMessage.startThread({
     name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
     autoArchiveDuration: 60,
     reason: 'Time for stack!',
   });
   return partyThread;
-}
+};
 
 async function stackIt(
   message: Message<true>,
@@ -411,6 +399,7 @@ async function stackIt(
     filter,
     time: FIVEMINUTES * 1000,
     max: 1,
+    componentType: ComponentType.Button,
   });
   collector.on('collect', async i => {});
 
@@ -421,65 +410,65 @@ async function stackIt(
     //   (shouldWeStackIt = true)
     // );
     await message.edit({ components: [] });
-    if (collected.last()) {
-      const interaction = collected.last();
-      if (!(interaction instanceof ButtonInteraction))
-        throw new Error('The interaction is not of type ButtonInteraction');
-
-      let guildHasPreferences = false;
-      const settingsObject = await getSettings();
-      const { guildId } = interaction;
-      if (!guildId) throw new Error('Somehow there is no guildI');
-      if (guildId in settingsObject) {
-        console.log('There is a guildid in the settings object');
-        guildHasPreferences = true;
-      }
-      const choices = confirmedPlayers.map(cP => {
-        let preferences = ['fill'];
-        // if (cP.player instanceof GuildMember)
-        //   throw new Error('The cp.Player is GuildMember, expected user');
-        if (guildHasPreferences) {
-          preferences = getPreferences(cP.player, settingsObject, guildId);
-        }
-        return {
-          user: cP.player,
-          handle: getHandle(cP.player),
-          position: 'Has not picket yet',
-          preferences,
-          randomed: 0,
-        };
-      });
-      const shuffledChoices = shuffle(choices);
-      const { member } = interaction;
-      if (!member) throw new Error('Interaction has no member!');
-      if (!(member instanceof GuildMember))
-        throw new Error('This is somehow the wrong guildmember object');
-      // const trashChannel = await getChannelFromSettings(interaction, 'trash');
-      // const stackThread = await trashChannel?.threads.create({
-      //   name: interaction?.user.username + "'s Dota Party",
-      //   autoArchiveDuration: 60,
-      //   reason: 'Time for stack!',
-      // });
-      await stackSetup(interaction, shuffledChoices, standardTime, message); //FIX THIS
-      // const button = linkButton(stackThread, 'Stack Thread');
-      // await message.edit({
-      //   content: 'Stack is running in the Stack Thread!',
-      //   components: [button],
-      // }); THIS GUY IS A LIE, DOES NOTHING ATM
-    } else {
+    const interaction = collected.last();
+    if (!interaction) {
+      console.log(
+        'It is possible that they are actually ready but the interaction is falsy so who knows'
+      );
       await message.edit({
         content: "You actually don't seem all that ready.",
       });
+      return;
     }
+    let guildHasPreferences = false;
+    const settingsObject = await getSettings();
+    const { guildId } = interaction;
+    if (!guildId) throw new Error('Somehow there is no guildI');
+    if (guildId in settingsObject) {
+      console.log('There is a guildid in the settings object');
+      guildHasPreferences = true;
+    }
+    const choices = confirmedPlayers.map(cP => {
+      let preferences = ['fill'];
+      // if (cP.player instanceof GuildMember)
+      //   throw new Error('The cp.Player is GuildMember, expected user');
+      if (guildHasPreferences) {
+        preferences = getPreferences(cP.player, settingsObject, guildId);
+      }
+      return {
+        user: cP.player,
+        handle: getHandle(cP.player),
+        position: 'Has not picket yet',
+        preferences,
+        randomed: 0,
+      };
+    });
+    const shuffledChoices = shuffle(choices);
+    const { member } = interaction;
+    if (!member) throw new Error('Interaction has no member!');
+    if (!(member instanceof GuildMember))
+      throw new Error('This is somehow the wrong guildmember object');
+    // const trashChannel = await getChannelFromSettings(interaction, 'trash');
+    // const stackThread = await trashChannel?.threads.create({
+    //   name: interaction?.user.username + "'s Dota Party",
+    //   autoArchiveDuration: 60,
+    //   reason: 'Time for stack!',
+    // });
+    await stackSetup(interaction, shuffledChoices, standardTime, message);
+    // const button = linkButton(stackThread, 'Stack Thread');
+    // await message.edit({
+    //   content: 'Stack is running in the Stack Thread!',
+    //   components: [button],
+    // }); THIS GUY IS A LIE, DOES NOTHING ATM
   });
 }
 
-async function dummySystem(
+export const dummySystem = async (
   interaction: ButtonInteraction,
   condiPlayers: ConditionalPlayer[],
   confirmedPlayers: ConfirmedPlayer[],
   dummy: GuildMember
-) {
+) => {
   //this is  a little busy
   const modal = new ModalBuilder()
     .setCustomId('textCollector')
@@ -520,7 +509,7 @@ async function dummySystem(
   await submitted.update({
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
   });
-}
+};
 
 async function modalThing(
   interaction: ButtonInteraction,
