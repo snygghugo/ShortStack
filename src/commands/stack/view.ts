@@ -62,7 +62,7 @@ const artTime = async (playerArray: PlayerObject[]) => {
 
 const finalMessageMaker = (playerArray: PlayerObject[]) => {
   const copyCodeCommand = [
-    '/splack', //REMEMBER: change this to stack
+    '/stack', //REMEMBER: change this to stack
     ...playerArray.map((player, i) => `p${i + 1}:${player.user.toString()}`),
   ];
   const finalArray = playerArray.map(player => {

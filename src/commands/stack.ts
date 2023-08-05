@@ -63,7 +63,7 @@ const addUser = (option: SlashCommandUserOption) => {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('splack')
+    .setName('stack')
     .setDescription('Dota 2 role selection tool')
     .addUserOption(addUser)
     .addUserOption(addUser)
