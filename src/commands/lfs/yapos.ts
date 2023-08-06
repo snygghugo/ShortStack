@@ -262,7 +262,6 @@ async function readyChecker(
     stoppedMessageContent,
     finalMessageContent,
   } = readyCheckerStrings;
-  // const readyArray: PlayerToReady[] = [];
   const readyArray = confirmedPlayers.map(({ player }) => ({
     gamer: player,
     ready: false,
@@ -270,9 +269,6 @@ async function readyChecker(
   }));
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);
-  // for (let player of confirmedPlayers) {
-  //   readyArray.push({ gamer: player.player, ready: false, pickTime: 0 });
-  // }
   const filter = (i: CollectedMessageInteraction) =>
     i.message?.id === partyMessage.id && i.customId in readyOptions;
   const collector = partyMessage.channel.createMessageComponentCollector({
@@ -463,7 +459,7 @@ async function stackIt(
       return {
         user: player,
         nickname: nickname,
-        position: 'Has not picked yet',
+        position: '',
         preferences,
         randomed: 0,
       };

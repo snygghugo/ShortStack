@@ -30,7 +30,7 @@ const artTime = async (playerArray: PlayerObject[]) => {
   context.clip();
   for (let player of playerArray) {
     if (player.avatar) {
-      if (player.position.startsWith('pos')) {
+      if (positionsMap.has(player.position)) {
         const coordinates = positionsMap.get(player.position);
         if (coordinates) {
           const { x, y } = coordinates;
@@ -54,13 +54,13 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
     `/stack p1:${user}`,
     ...rest.map(({ user }, i) => `${' '.repeat(7)}p${i + 2}:${user}`),
   ];
-  const finalArray = playerArray.map(player => {
-    if (player.randomed > 0) {
-      return `${player.user.username} ${player.position.slice(3)}${'⁉️'.repeat(
-        player.randomed
-      )}`;
-    }
-    return `${player.user.username} ${player.position.slice(3)}`;
+  const sortedArray = [...playerArray].sort(
+    (a, b) => parseInt(a.position.slice(3)) - parseInt(b.position.slice(3))
+  );
+  const finalArray = sortedArray.map(player => {
+    return `${player.user.username} ${player.position.slice(3)}${'⁉️'.repeat(
+      player.randomed
+    )}`;
   });
   return {
     finalMessage: finalArray.join(' | '),
@@ -68,29 +68,29 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   };
 };
 
-const createAppropriatePadding = (position: string, randomed: number) => {
-  switch (position) {
-    case 'pos1':
-    case 'pos2':
-    case 'pos3':
-    case 'pos4':
-    case 'pos5':
-    case 'fill':
-      return `${' '.repeat(14 - randomed)}`;
-    case 'Has not picked yet':
-      return '';
-  }
-};
-const prettyField = (playerObject: PlayerObject) => {
-  const { position, randomed, nickname } = playerObject;
-  const padding = createAppropriatePadding(position, randomed);
-  if (nickname.length > 21) {
-    return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\n${' '.repeat(
-      19
-    )}\``;
-  }
-  return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\``;
-};
+// const createAppropriatePadding = (position: string, randomed: number) => {
+//   switch (position) {
+//     case 'pos1':
+//     case 'pos2':
+//     case 'pos3':
+//     case 'pos4':
+//     case 'pos5':
+//     case 'fill':
+//       return `${' '.repeat(14 - randomed)}`;
+//     case '':
+//       return '';
+//   }
+// };
+// const prettyField = (playerObject: PlayerObject) => {
+//   const { position, randomed, nickname } = playerObject;
+//   const padding = createAppropriatePadding(position, randomed);
+//   if (nickname.length > 21) {
+//     return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\n${' '.repeat(
+//       19
+//     )}\``;
+//   }
+//   return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\``;
+// };
 
 export const stackEmbed = async (
   playerArray: PlayerObject[],
@@ -104,13 +104,46 @@ export const stackEmbed = async (
       return user.username;
     })
     .join('\n');
-  const positionField = playerArray.map(prettyField).join('\n');
+  // const positionField = playerArray.map(prettyField).join('\n');
+
+  const prettifyString = ({ nickname, position, randomed }: PlayerObject) => {
+    // const goalLength = position !== '👈' ? 38 : 25;
+    let goalLength2: number;
+    switch (position) {
+      case '':
+        goalLength2 = 41;
+        break;
+      case '👈':
+        goalLength2 = 43;
+        break;
+      default:
+        goalLength2 = 45;
+        break;
+    }
+    const neededLength =
+      goalLength2 - (nickname.length + position.length + randomed);
+    return `\`${nickname}${position.padStart(neededLength)}${'⁉️'.repeat(
+      randomed
+    )}\``;
+    // return `${nickname}${position.padStart(neededLength)}${'⁉️'.repeat(
+    //   randomed
+    // )}`;
+  };
+  const mobileField = playerArray.map(prettifyString);
+  const positionField = playerArray
+    .map(({ position, randomed }) => `${position}${'⁉️'.repeat(randomed)}`)
+    .join('\n');
   const art = await artTime(playerArray);
   if (nextUp) {
     const embed = {
       fields: [
-        { name: 'Picking order:', value: nameField, inline: true },
-        { name: BLANK, value: positionField, inline: true },
+        {
+          name: 'Picking order:',
+          value: `${mobileField.join('\n')}`,
+          // value: `\`\`\`${mobileField.join('\n')}\`\`\``,
+        },
+        // { name: 'Picking order:', value: nameField, inline: true },
+        // { name: BLANK, value: positionField, inline: true },
       ],
       image: {
         url: 'attachment://dota-map.png',
@@ -121,21 +154,22 @@ export const stackEmbed = async (
   }
 
   const { finalMessage, shortCommand } = finalMessageMaker(playerArray);
-  const finalPositionField = playerArray.map(prettyField).join('\n');
+  // const finalPositionField = playerArray.map(prettyField).join('\n');
   const embed = {
     fields: [
       { name: 'Copy Code:', value: shortCommand },
       {
         name: 'Picking complete!',
-        value: nameField,
-        inline: true,
+        value: `${mobileField.join('\n')}`,
+        // value: `\`\`\`${mobileField.join('\n')}\`\`\``,
       },
-      { name: BLANK, value: finalPositionField, inline: true },
+      // { name: 'Picking complete!', value: nameField, inline: true },
+      // { name: BLANK, value: positionField, inline: true },
     ],
     image: {
       url: 'attachment://dota-map.png',
     },
-    footer: { text: finalMessage },
+    footer: { text: finalMessage }, //SORT THIS GUY BY POS ASCENDING
   };
   // const embedObject = { embed: embed, file: art };
   return { embed, art };
@@ -156,14 +190,13 @@ export const createRoleRows = (
   nextUp: NextUp | null,
   available: string[]
 ): ActionRowBuilder<ButtonBuilder>[] => {
-  const row1 = new ActionRowBuilder()
+  const row1 = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(createRoleButton('pos1', '1️⃣', available))
     .addComponents(createRoleButton('pos2', '2️⃣', available))
     .addComponents(createRoleButton('pos3', '3️⃣', available))
     .addComponents(createRoleButton('pos4', '4️⃣', available))
     .addComponents(createRoleButton('pos5', '5️⃣', available));
-  //5 buttons/row is max for Discord, so I'm splitting them in half :)
-  const row2 = new ActionRowBuilder()
+  const row2 = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(
       new ButtonBuilder()
         .setCustomId('fill')
@@ -177,5 +210,5 @@ export const createRoleRows = (
         .setLabel('⁉️')
         .setStyle(ButtonStyle.Primary)
     );
-  return [row1, row2] as ActionRowBuilder<ButtonBuilder>[];
+  return [row1, row2];
 };

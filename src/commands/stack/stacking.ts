@@ -197,14 +197,18 @@ async function stackExecute(
 }
 
 function whosNext(playerArray: PlayerObject[]): NextUp | null {
-  const unpickedPlayer = playerArray.find(player =>
-    player.position.startsWith('Has')
-  );
-  if (unpickedPlayer) return Object.assign({ fillFlag: false }, unpickedPlayer);
+  const unpickedPlayer = playerArray.find(player => !player.position);
+  if (unpickedPlayer) {
+    unpickedPlayer.position = '👈';
+    return Object.assign({ fillFlag: false }, unpickedPlayer);
+  }
   //THIS WAY OF COPYING MIGHT GET FUCKED
   const reversedArray = [...playerArray].reverse();
   const filledPlayer = reversedArray.find(player => player.position === 'fill');
-  if (filledPlayer) return Object.assign({ fillFlag: true }, filledPlayer);
+  if (filledPlayer) {
+    filledPlayer.position = '👈';
+    return Object.assign({ fillFlag: true }, filledPlayer);
+  }
   return null;
 }
 

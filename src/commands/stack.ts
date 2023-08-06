@@ -44,7 +44,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
     const playerToAdd = {
       user: userToAdd,
       nickname,
-      position: 'Has not picked yet',
+      position: '',
       preferences: preferences,
       randomed: 0,
     };
