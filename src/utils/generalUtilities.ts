@@ -1,4 +1,4 @@
-import { GuildMember, User } from 'discord.js';
+import { User } from 'discord.js';
 import { Dummy } from './types';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
@@ -21,14 +21,7 @@ export const shuffle = <Type>(array: Type[]): Type[] => {
   return array;
 };
 
-export const getHandle = (player: User | GuildMember | Dummy) => {
-  if (player instanceof GuildMember) {
-    return player.nickname || player.user.username;
-  }
-  return player.username;
-};
-
-export const getNameWithPing = (user: User | GuildMember | Dummy) => {
+export const getNameWithPing = (user: User | Dummy) => {
   if ('isDummy' in user) {
     return `@${user.id}`;
   }

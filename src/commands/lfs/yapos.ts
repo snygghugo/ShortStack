@@ -7,7 +7,6 @@ import {
   CollectedMessageInteraction,
   Message,
   AnyThreadChannel,
-  GuildMember,
   ButtonInteraction,
   ComponentType,
   User,
@@ -20,14 +19,13 @@ import {
   everyoneReady,
   pingMessage,
   playerIdentityConfirmedPlayer,
-  playerIdentityGuildMember,
   createDummy,
 } from './utilities';
 import { createButtonRow, modalComponent } from '../../utils/view';
 import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
 import { ConditionalPlayer, ConfirmedPlayer, Dummy } from '../../utils/types';
-import { getHandle, shuffle } from '../../utils/generalUtilities';
+import { shuffle } from '../../utils/generalUtilities';
 import {
   getDotaRole,
   getChannelFromSettings,
@@ -137,9 +135,11 @@ export const setUp = async (
     switch (i.customId) {
       case buttonOptions.in:
         if (
-          !confirmedPlayers.find(
-            playerIdentityConfirmedPlayer(i) || playerIdentityGuildMember(i)
-          )
+          !confirmedPlayers.find(({ player }) => {
+            console.log('Comparing this id', player.id);
+            console.log('With this', interaction.user.id);
+            return player.id === interaction.user.id;
+          })
         ) {
           removeFromArray(condiPlayers, i);
           confirmedPlayers.push({ player: i.user });
@@ -157,9 +157,11 @@ export const setUp = async (
 
       case buttonOptions.condi:
         if (
-          !condiPlayers.find(
-            playerIdentityConfirmedPlayer(i) || playerIdentityGuildMember(i)
-          )
+          !condiPlayers.find(({ player }) => {
+            console.log('Comparing this id', player.id);
+            console.log('With this', interaction.user.id);
+            return player.id === interaction.user.id;
+          })
         ) {
           removeFromArray(confirmedPlayers, i); //remove player from IN if they're in it
           await modalThing(i, condiPlayers, confirmedPlayers);
@@ -197,7 +199,7 @@ export const setUp = async (
         if (!modalInteraction.isFromMessage())
           throw new Error('Somehow modalInteraction is not from message');
         const dummyName =
-          modalInteraction.fields.getTextInputValue('avatar') || 'Ghost';
+          modalInteraction.fields.getTextInputValue('dummyName') || 'Ghost';
 
         if (!dummyName) break;
         const dummy = createDummy(dummyName);
@@ -460,17 +462,13 @@ async function stackIt(
       }
       return {
         user: cP.player,
-        handle: getHandle(cP.player),
+        handle: cP.player.username,
         position: 'Has not picket yet',
         preferences,
         randomed: 0,
       };
     });
     const shuffledChoices = shuffle(choices);
-    const { member } = interaction;
-    if (!member) throw new Error('Interaction has no member!');
-    if (!(member instanceof GuildMember))
-      throw new Error('This is somehow the wrong guildmember object');
     // const trashChannel = await getChannelFromSettings(interaction, 'trash');
     // const stackThread = await trashChannel?.threads.create({
     //   name: interaction?.user.username + "'s Dota Party",
@@ -492,7 +490,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setCustomId('textCollector')
     .setTitle('Ok, buddy');
   const avatarInput = new TextInputBuilder()
-    .setCustomId('avatar')
+    .setCustomId('dummyName')
     .setLabel('Who are you adding?')
     .setPlaceholder('This spot is meant to represent...')
     .setMaxLength(140)

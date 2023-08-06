@@ -1,6 +1,5 @@
 import {
   ButtonInteraction,
-  GuildMember,
   ThreadChannel,
   CollectedInteraction,
 } from 'discord.js';
@@ -13,21 +12,10 @@ import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 //     [e?.id, e.player?.id].includes(interaction.user.id);
 // };
 
-export const playerIdentityGuildMember =
-  (interaction: ButtonInteraction | ButtonInteraction) =>
-  (member: GuildMember) =>
-    member.id === interaction.user.id;
-
 export const playerIdentityConfirmedPlayer =
   (interaction: ButtonInteraction | ButtonInteraction) =>
   (confirmedPlayer: ConfirmedPlayer) =>
     confirmedPlayer.player.id === interaction.user.id;
-
-export const playerIdentity = (
-  interaction: ButtonInteraction | ButtonInteraction
-) =>
-  playerIdentityGuildMember(interaction) ||
-  playerIdentityConfirmedPlayer(interaction);
 
 // export const helpMeLittleHelper = async (queuer, method: string) => {
 //   const request = {
@@ -76,10 +64,11 @@ export const removeFromArray = (
   interaction: ButtonInteraction
 ) => {
   // const index = array.findIndex(playerIdentity(interaction));
-  const index = array.findIndex(
-    playerIdentityConfirmedPlayer(interaction) ||
-      playerIdentityGuildMember(interaction)
-  );
+  const index = array.findIndex(({ player }) => {
+    console.log('Comparing this id', player.id);
+    console.log('With this', interaction.user.id);
+    return player.id === interaction.user.id;
+  });
   if (index > -1) {
     array.splice(index, 1); //Return the array instead probably
     return true;

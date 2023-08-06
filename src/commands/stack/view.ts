@@ -8,7 +8,6 @@ import {
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject, NextUp } from '../../utils/types';
-import { getHandle } from '../../utils/generalUtilities';
 
 const artTime = async (playerArray: PlayerObject[]) => {
   const canvas = Canvas.createCanvas(308, 308);
@@ -69,11 +68,11 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   ];
   const finalArray = playerArray.map(player => {
     if (player.randomed > 0) {
-      return `${getHandle(player.user)} ${player.position.slice(
-        3
-      )}${'⁉️'.repeat(player.randomed)}`;
+      return `${player.user.username} ${player.position.slice(3)}${'⁉️'.repeat(
+        player.randomed
+      )}`;
     }
-    return `${getHandle(player.user)} ${player.position.slice(3)}`;
+    return `${player.user.username} ${player.position.slice(3)}`;
   });
   return {
     finalMessage: finalArray.join(' | '),
@@ -124,7 +123,7 @@ export const stackEmbed = async (
 const stringPrettifier = (player: PlayerObject) => {
   //39 is the max character count to include a max level length + all the pos stuff
   const optimalStringLength = 39;
-  const name = getHandle(player.user);
+  const name = player.user.username;
   const playerName = name.slice(0, 20);
   const neededFilling =
     optimalStringLength - (playerName.length + player.position.length);

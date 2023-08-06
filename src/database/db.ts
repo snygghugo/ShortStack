@@ -3,11 +3,9 @@ import {
   ButtonInteraction,
   TextChannel,
   User,
-  GuildMember,
 } from 'discord.js';
 import { Dummy, HugoData, SettingsOptions } from '../utils/types';
 import { promises as fs } from 'fs';
-import { getHandle } from '../utils/generalUtilities';
 
 export const getSettings = async (): Promise<HugoData> => {
   const settingsObject = JSON.parse(
@@ -17,13 +15,13 @@ export const getSettings = async (): Promise<HugoData> => {
 };
 
 export const getPreferences = (
-  user: User | GuildMember | Dummy,
+  user: User | Dummy,
   settingsObject: HugoData,
   guildId: string
 ) => {
   if (user.toString() in settingsObject[guildId].players) {
     const preferences = settingsObject[guildId].players[user.toString()];
-    console.log(`${getHandle(user)} has preferences ${preferences}!`);
+    console.log(`${user.username} has preferences ${preferences}!`);
     return preferences;
   }
   console.log('User does not have preferences, returning fill');

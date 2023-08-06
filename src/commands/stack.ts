@@ -4,7 +4,6 @@ import {
   SlashCommandUserOption,
 } from 'discord.js';
 import { shuffle } from '../utils/generalUtilities';
-import { getHandle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getSettings, getPreferences } from '../database/db';
 import { PlayerObject } from '../utils/types';
@@ -43,7 +42,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
     );
     const playerToAdd = {
       user: userToAdd,
-      handle: getHandle(userToAdd),
+      handle: userToAdd.username,
       position: 'Has not picket yet',
       preferences: preferences,
       randomed: 0,

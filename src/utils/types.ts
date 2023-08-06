@@ -1,4 +1,4 @@
-import { User, GuildMember } from 'discord.js';
+import { User } from 'discord.js';
 
 export type PlayerObject = {
   user: User | Dummy;

@@ -10,11 +10,7 @@ import {
 } from 'discord.js';
 import { request } from 'undici';
 import { PlayerObject, NextUp, Dummy } from '../../utils/types';
-import {
-  getHandle,
-  getNameWithPing,
-  shuffle,
-} from '../../utils/generalUtilities';
+import { getNameWithPing, shuffle } from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 
@@ -131,7 +127,7 @@ async function stackExecute(
         console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
         const recentlyPicked = {
           user: nextUp.user,
-          handle: getHandle(nextUp.user),
+          handle: nextUp.user.username,
           position: assignedRole,
           preferences: nextUp.preferences,
           avatar: nextUp.avatar,
@@ -149,7 +145,7 @@ async function stackExecute(
       if (last.customId !== 'random') {
         const recentlyPicked = {
           user: nextUp.user,
-          handle: getHandle(nextUp.user),
+          handle: nextUp.user.username,
           position: last.customId,
           preferences: nextUp.preferences,
           avatar: nextUp.avatar,
@@ -168,7 +164,7 @@ async function stackExecute(
       unpickedRoles.push('fill');
       const recentlyPicked = {
         user: nextUp.user,
-        handle: getHandle(nextUp.user),
+        handle: nextUp.user.username,
         position: shuffle(unpickedRoles)[0],
         preferences: nextUp.preferences,
         avatar: nextUp.avatar,
