@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject, NextUp } from '../../utils/types';
-import { BLANK, PICKING_ORDER } from '../../utils/textContent';
+import { BLANK } from '../../utils/textContent';
 
 const artTime = async (playerArray: PlayerObject[]) => {
   const canvas = Canvas.createCanvas(308, 308);
@@ -15,15 +15,15 @@ const artTime = async (playerArray: PlayerObject[]) => {
   const background = await Canvas.loadImage('./map.png');
   context.drawImage(background, 0, 0, canvas.width, canvas.height);
   context.beginPath();
-  const positionsPositionsArray = [
-    { x: 235 - 10, y: 248 - 20 },
-    { x: 125, y: 125 },
-    { x: 10, y: 25 },
-    { x: 100, y: 40 },
-    { x: 185 - 10, y: 248 - 20 },
-  ];
-  positionsPositionsArray.forEach(({ x, y }) => {
-    const radius = 25;
+  const positionsMap = new Map([
+    ['pos1', { x: 235 - 10, y: 248 - 20 }],
+    ['pos2', { x: 125, y: 125 }],
+    ['pos3', { x: 10, y: 25 }],
+    ['pos4', { x: 100, y: 40 }],
+    ['pos5', { x: 185 - 10, y: 248 - 20 }],
+  ]);
+  const radius = 25;
+  positionsMap.forEach(({ x, y }) => {
     context.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
     context.closePath();
   });
@@ -31,25 +31,11 @@ const artTime = async (playerArray: PlayerObject[]) => {
   for (let player of playerArray) {
     if (player.avatar) {
       if (player.position.startsWith('pos')) {
-        const avatar = await Canvas.loadImage(player.avatar);
-        const draw = ({ x, y }: { x: number; y: number }) =>
-          context.drawImage(avatar, x, y, 50, 50);
-        switch (player.position) {
-          case 'pos1':
-            draw(positionsPositionsArray[0]);
-            break;
-          case 'pos2':
-            draw(positionsPositionsArray[1]);
-            break;
-          case 'pos3':
-            draw(positionsPositionsArray[2]);
-            break;
-          case 'pos4':
-            draw(positionsPositionsArray[3]);
-            break;
-          case 'pos5':
-            draw(positionsPositionsArray[4]);
-            break;
+        const coordinates = positionsMap.get(player.position);
+        if (coordinates) {
+          const { x, y } = coordinates;
+          const avatar = await Canvas.loadImage(player.avatar);
+          context.drawImage(avatar, x, y, radius * 2, radius * 2);
         }
       }
     }
@@ -189,19 +175,6 @@ export const stackEmbed = async (
   // const embedObject = { embed: embed, file: art };
   return { embed, art };
 };
-
-const stringPrettifier = (player: PlayerObject) => {
-  //39 is the max character count to include a max level length + all the pos stuff
-  const optimalStringLength = 39;
-  const name = player.user.username;
-  const playerName = name.slice(0, 20);
-  const neededFilling =
-    optimalStringLength - (playerName.length + player.position.length);
-  const stringFilling = ' '.repeat(neededFilling + 1 - player.randomed);
-  const interrobangs = '⁉️'.repeat(player.randomed);
-  return `\`\`${playerName}${stringFilling} ${player.position}${interrobangs}\`\``;
-};
-
 const createRoleButton = (
   id: string,
   label: string,
