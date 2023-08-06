@@ -52,7 +52,7 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   const [{ user }, ...rest] = dummiesFiltered;
   const copyCodeCommand = [
     `/stack p1:${user}`,
-    ...rest.map(({ user }, i) => `${' '.repeat(8)}p${i + 2}:${user}`),
+    ...rest.map(({ user }, i) => `${' '.repeat(7)}p${i + 2}:${user}`),
   ];
   const finalArray = playerArray.map(player => {
     if (player.randomed > 0) {
@@ -76,7 +76,7 @@ const createAppropriatePadding = (position: string, randomed: number) => {
     case 'pos4':
     case 'pos5':
     case 'fill':
-      return `${'.'.repeat(14 - randomed)}`;
+      return `${' '.repeat(14 - randomed)}`;
     case 'Has not picked yet':
       return '';
   }
