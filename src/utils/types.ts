@@ -2,7 +2,7 @@ import { User } from 'discord.js';
 
 export type PlayerObject = {
   user: User | Dummy;
-  handle: string;
+  nickname: string;
   position: string;
   preferences: string[];
   randomed: number;
@@ -12,9 +12,14 @@ export type PlayerObject = {
 export interface NextUp extends PlayerObject {
   fillFlag: boolean;
 }
-export type ConditionalPlayer = { player: User; condition: string };
+export type ConditionalPlayer = {
+  player: User;
+  nickname: string;
+  condition: string;
+};
 export type ConfirmedPlayer = {
   player: User | Dummy;
+  nickname: string;
 };
 
 export type Dummy = {

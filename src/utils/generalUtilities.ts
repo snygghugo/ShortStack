@@ -1,4 +1,8 @@
-import { User } from 'discord.js';
+import {
+  User,
+  ChatInputCommandInteraction,
+  ButtonInteraction,
+} from 'discord.js';
 import { Dummy } from './types';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
@@ -31,4 +35,17 @@ export const getNameWithPing = (user: User | Dummy) => {
 export const tsCompliantIncludes = (array: any[], x: any) => {
   if (!x) return false;
   return array.includes(x);
+};
+
+export const getNickname = async (
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  user: User | Dummy
+) => {
+  if (user instanceof User) {
+    return (
+      (await interaction.guild?.members.fetch(user.id))?.nickname ||
+      user.username
+    );
+  }
+  return user.username;
 };

@@ -3,7 +3,7 @@ import {
   SlashCommandBuilder,
   SlashCommandUserOption,
 } from 'discord.js';
-import { shuffle } from '../utils/generalUtilities';
+import { getNickname, shuffle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getSettings, getPreferences } from '../database/db';
 import { PlayerObject } from '../utils/types';
@@ -40,10 +40,11 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
     console.log(
       `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
     );
+    const nickname = await getNickname(interaction, userToAdd);
     const playerToAdd = {
       user: userToAdd,
-      handle: userToAdd.username,
-      position: 'Has not picket yet',
+      nickname,
+      position: 'Has not picked yet',
       preferences: preferences,
       randomed: 0,
     };

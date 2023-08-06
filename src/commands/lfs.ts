@@ -21,7 +21,7 @@ module.exports = {
     .addUserOption(addUser),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const confirmedPlayers = createConfirmedPlayers(interaction);
+    const confirmedPlayers = await createConfirmedPlayers(interaction);
     if (!confirmedPlayers) {
       interaction.reply(
         'Please provide unique players!\nLove, **ShortStack!**'

@@ -15,6 +15,7 @@ import {
   readyEmbedStrings,
   inOutButLabels,
   rdyButtonsLabels,
+  BLANK,
 } from '../../utils/textContent';
 import { getNameWithPing } from '../../utils/generalUtilities';
 
@@ -82,7 +83,7 @@ export const roleCallEmbed = (
 };
 
 export const readyEmbed = (readyArray: PlayerToReady[]) => {
-  const { readyHeading, blank } = readyEmbedStrings;
+  const { readyHeading } = readyEmbedStrings;
   const readyAmount = readyArray.filter(({ ready }) => ready).length;
   const embed = {
     color: readyColours[readyAmount as keyof typeof readyColours],
@@ -95,7 +96,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
         inline: true,
       },
       {
-        name: blank,
+        name: BLANK,
         value: readyArray.map(({ ready }) => (ready ? '✅' : '❌')).join('\n'),
         inline: true,
       },

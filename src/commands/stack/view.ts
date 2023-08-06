@@ -1,13 +1,13 @@
 import {
   ActionRowBuilder,
   AttachmentBuilder,
-  ChatInputCommandInteraction,
-  ButtonInteraction,
   ButtonBuilder,
   ButtonStyle,
+  User,
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject, NextUp } from '../../utils/types';
+import { BLANK, PICKING_ORDER } from '../../utils/textContent';
 
 const artTime = async (playerArray: PlayerObject[]) => {
   const canvas = Canvas.createCanvas(308, 308);
@@ -60,11 +60,13 @@ const artTime = async (playerArray: PlayerObject[]) => {
 };
 
 const finalMessageMaker = (playerArray: PlayerObject[]) => {
+  const dummiesFiltered = playerArray.filter(
+    ({ user }) => !('isDummy' in user)
+  );
+  const [{ user }, ...rest] = dummiesFiltered;
   const copyCodeCommand = [
-    '/stack',
-    ...playerArray
-      .filter(({ user }) => !('isDummy' in user))
-      .map(({ user }, i) => `p${i + 1}:${user}`),
+    `/stack p1:${user}`,
+    ...rest.map(({ user }, i) => `${' '.repeat(8)}p${i + 2}:${user}`),
   ];
   const finalArray = playerArray.map(player => {
     if (player.randomed > 0) {
@@ -76,48 +78,116 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   });
   return {
     finalMessage: finalArray.join(' | '),
-    shortCommand: copyCodeCommand.join(' '),
+    shortCommand: `\`\`\`${copyCodeCommand.join('\n')}\`\`\``,
   };
+};
+
+// export const stackEmbed = async (
+//   playerArray: PlayerObject[],
+//   nextUp: NextUp | null
+// ) => {
+//   const playerFields = playerArray.map(player => stringPrettifier(player));
+//   const art = await artTime(playerArray);
+//   if (nextUp) {
+//     const embed = {
+//       color: (Math.random() * 0xffffff) << 0,
+//       fields: [{ name: 'Picking order: ', value: playerFields.join('\n') }],
+//       image: {
+//         url: 'attachment://dota-map.png',
+//       },
+//     };
+//     const embedObject = { embed: embed, file: art };
+//     return embedObject;
+//   }
+//   const finalText = finalMessageMaker(playerArray);
+//   const finalMessage = { text: finalText.finalMessage };
+//   const shortCommand = '`' + finalText.shortCommand + '`';
+//   const embed = {
+//     color: (Math.random() * 0xffffff) << 0,
+//     fields: [
+//       { name: 'Copy Code:', value: shortCommand },
+//       { name: 'Picking complete!', value: playerFields.join('\n') },
+//     ],
+//     image: {
+//       url: 'attachment://dota-map.png',
+//     },
+//     footer: finalMessage,
+//   };
+//   const embedObject = { embed: embed, file: art };
+//   return embedObject;
+// };
+
+const createAppropriatePadding = (position: string, randomed: number) => {
+  switch (position) {
+    case 'pos1':
+    case 'pos2':
+    case 'pos3':
+    case 'pos4':
+    case 'pos5':
+    case 'fill':
+      return `${'.'.repeat(14 - randomed)}`;
+    case 'Has not picked yet':
+      return '';
+  }
+};
+const prettyField = (playerObject: PlayerObject) => {
+  const { position, randomed, nickname } = playerObject;
+  const padding = createAppropriatePadding(position, randomed);
+  if (nickname.length > 21) {
+    return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\n${' '.repeat(
+      19
+    )}\``;
+  }
+  return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\``;
 };
 
 export const stackEmbed = async (
   playerArray: PlayerObject[],
-  nextUp: NextUp | null,
-  interaction: ChatInputCommandInteraction | ButtonInteraction
+  nextUp: NextUp | null
 ) => {
-  // const playerFields: string[] = [];
-  const playerFields = playerArray.map(player => stringPrettifier(player));
-  // playerArray.forEach(async player => {
-  //   playerFields.push(stringPrettifier(player));
-  // });
+  const nameField = playerArray
+    .map(({ user }) => {
+      if (user instanceof User) {
+        return user;
+      }
+      return user.username;
+    })
+    .join('\n');
+  const positionField = playerArray.map(prettyField).join('\n');
   const art = await artTime(playerArray);
   if (nextUp) {
     const embed = {
-      color: (Math.random() * 0xffffff) << 0,
-      fields: [{ name: 'Picking order: ', value: playerFields.join('\n') }],
+      fields: [
+        { name: 'Picking order:', value: nameField, inline: true },
+        { name: BLANK, value: positionField, inline: true },
+      ],
       image: {
         url: 'attachment://dota-map.png',
       },
     };
-    const embedObject = { embed: embed, file: art };
-    return embedObject;
+    // const embedObject = { embed: embed, file: art };
+    return { embed, art };
   }
-  const finalText = finalMessageMaker(playerArray);
-  const finalMessage = { text: finalText.finalMessage };
-  const shortCommand = '`' + finalText.shortCommand + '`';
+
+  const { finalMessage, shortCommand } = finalMessageMaker(playerArray);
+  const finalPositionField = playerArray.map(prettyField).join('\n');
   const embed = {
-    color: (Math.random() * 0xffffff) << 0,
     fields: [
       { name: 'Copy Code:', value: shortCommand },
-      { name: 'Picking complete!', value: playerFields.join('\n') },
+      {
+        name: 'Picking complete!',
+        value: nameField,
+        inline: true,
+      },
+      { name: BLANK, value: finalPositionField, inline: true },
     ],
     image: {
       url: 'attachment://dota-map.png',
     },
-    footer: finalMessage,
+    footer: { text: finalMessage },
   };
-  const embedObject = { embed: embed, file: art };
-  return embedObject;
+  // const embedObject = { embed: embed, file: art };
+  return { embed, art };
 };
 
 const stringPrettifier = (player: PlayerObject) => {

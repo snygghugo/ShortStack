@@ -18,14 +18,13 @@ import {
   forceReady,
   everyoneReady,
   pingMessage,
-  playerIdentityConfirmedPlayer,
   createDummy,
 } from './utilities';
 import { createButtonRow, modalComponent } from '../../utils/view';
 import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
 import { ConditionalPlayer, ConfirmedPlayer, Dummy } from '../../utils/types';
-import { shuffle } from '../../utils/generalUtilities';
+import { shuffle, getNickname } from '../../utils/generalUtilities';
 import {
   getDotaRole,
   getChannelFromSettings,
@@ -62,11 +61,14 @@ import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 //   return initMessage;
 // };
 
-export const createConfirmedPlayers = (
+export const createConfirmedPlayers = async (
   interaction: ChatInputCommandInteraction
 ) => {
   const confirmedPlayers: ConfirmedPlayer[] = [];
-  confirmedPlayers.push({ player: interaction.user });
+  confirmedPlayers.push({
+    player: interaction.user,
+    nickname: await getNickname(interaction, interaction.user),
+  });
   //It's a 2 because I arbitrarily start at p2 because p2 would be the 2nd person in the Dota party
   for (let i = 2; i < 7; i++) {
     const player = interaction.options.getUser('p' + i);
@@ -74,7 +76,8 @@ export const createConfirmedPlayers = (
       if (confirmedPlayers.some(cP => cP.player.id === player.id)) {
         return;
       }
-      confirmedPlayers.push({ player: player });
+      const nickname = await getNickname(interaction, player);
+      confirmedPlayers.push({ player, nickname });
     }
   }
   return confirmedPlayers;
@@ -104,9 +107,7 @@ export const setUp = async (
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   const confirmedPlayersWithoutDummies = confirmedPlayers.filter(
-    (p): p is { player: User } => {
-      return !('isDummy' in p);
-    }
+    (p): p is { player: User; nickname: string } => !('isDummy' in p)
   );
   confirmedPlayersWithoutDummies.forEach(p =>
     partyThread.members.add(p.player)
@@ -142,7 +143,8 @@ export const setUp = async (
           })
         ) {
           removeFromArray(condiPlayers, i);
-          confirmedPlayers.push({ player: i.user });
+          const nickname = await getNickname(i, i.user);
+          confirmedPlayers.push({ player: i.user, nickname });
           await partyThread.members.add(i.user);
           if (confirmedPlayers.length > 4) {
             console.log(
@@ -203,7 +205,7 @@ export const setUp = async (
 
         if (!dummyName) break;
         const dummy = createDummy(dummyName);
-        confirmedPlayers.push({ player: dummy });
+        confirmedPlayers.push({ player: dummy, nickname: dummyName });
         await modalInteraction.update({
           embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
         });
@@ -272,7 +274,7 @@ async function readyChecker(
   //   readyArray.push({ gamer: player.player, ready: false, pickTime: 0 });
   // }
   const filter = (i: CollectedMessageInteraction) =>
-    i.channel?.id === partyMessage.channel.id && i.customId in readyOptions;
+    i.message?.id === partyMessage.id && i.customId in readyOptions;
   const collector = partyMessage.channel.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
@@ -379,7 +381,7 @@ async function redoCollector(
   partyThread: AnyThreadChannel
 ) {
   const filter = (i: CollectedInteraction) =>
-    i.channel?.id === partyMessage.channel.id && i.customId === 'redo';
+    i.message?.id === partyMessage.id && i.customId === 'redo';
   const collector = partyMessage.channel.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
@@ -453,17 +455,15 @@ async function stackIt(
       console.log('There is a guildid in the settings object');
       guildHasPreferences = true;
     }
-    const choices = confirmedPlayers.map(cP => {
+    const choices = confirmedPlayers.map(({ player, nickname }) => {
       let preferences = ['fill'];
-      // if (cP.player instanceof GuildMember)
-      //   throw new Error('The cp.Player is GuildMember, expected user');
       if (guildHasPreferences) {
-        preferences = getPreferences(cP.player, settingsObject, guildId);
+        preferences = getPreferences(player, settingsObject, guildId);
       }
       return {
-        user: cP.player,
-        handle: cP.player.username,
-        position: 'Has not picket yet',
+        user: player,
+        nickname: nickname,
+        position: 'Has not picked yet',
         preferences,
         randomed: 0,
       };
@@ -493,7 +493,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setCustomId('dummyName')
     .setLabel('Who are you adding?')
     .setPlaceholder('This spot is meant to represent...')
-    .setMaxLength(140)
+    .setMaxLength(14)
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
   modal.addComponents(modalInput);
@@ -596,7 +596,12 @@ async function modalThing(
   const condition = `${submitted.fields.getTextInputValue(
     'reason'
   )} *(written <t:${time}:R>)*`;
-  condiPlayers.push({ player: interaction.user, condition: condition });
+  const nickname = await getNickname(interaction, interaction.user);
+  condiPlayers.push({
+    player: interaction.user,
+    nickname,
+    condition: condition,
+  });
   if (!submitted.isFromMessage())
     throw new Error("Somehow this modal isn't from a message");
 

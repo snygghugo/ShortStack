@@ -10,7 +10,11 @@ import {
 } from 'discord.js';
 import { request } from 'undici';
 import { PlayerObject, NextUp, Dummy } from '../../utils/types';
-import { getNameWithPing, shuffle } from '../../utils/generalUtilities';
+import {
+  getNameWithPing,
+  getNickname,
+  shuffle,
+} from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 
@@ -73,13 +77,13 @@ async function stackExecute(
   const available = availableRoles(updatedArray);
   const nextUp = whosNext(updatedArray);
   const buttonRows = createRoleRows(nextUp, available);
-  const embed = await stackEmbed(updatedArray, nextUp, interaction);
+  const { embed, art } = await stackEmbed(updatedArray, nextUp);
 
   if (!nextUp) {
     await message.edit({
-      content: '',
-      embeds: [embed.embed],
-      files: [embed.file],
+      content: 'All done!',
+      embeds: [embed],
+      files: [art],
       components: [],
     });
     return;
@@ -95,13 +99,12 @@ async function stackExecute(
     )} You're up! If you do not pick you will be assigned ${assignedRole} in <t:${
       time + pickTime + spaghettiTime
     }:R>`,
-    embeds: [embed.embed],
+    embeds: [embed],
     components: buttonRows,
-    files: [embed.file],
+    files: [art],
   });
 
-  const filter = (i: CollectedInteraction) =>
-    i.channel?.id === message.channel.id;
+  const filter = (i: CollectedInteraction) => i.message?.id === message.id;
   const collector = message.channel.createMessageComponentCollector({
     filter,
     time: pickTime * 1000,
@@ -125,9 +128,10 @@ async function stackExecute(
       const last = collected.last();
       if (!last?.customId) {
         console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
+        const nickname = await getNickname(interaction, nextUp.user);
         const recentlyPicked = {
           user: nextUp.user,
-          handle: nextUp.user.username,
+          nickname,
           position: assignedRole,
           preferences: nextUp.preferences,
           avatar: nextUp.avatar,
@@ -143,9 +147,10 @@ async function stackExecute(
         return;
       }
       if (last.customId !== 'random') {
+        const nickname = await getNickname(interaction, nextUp.user);
         const recentlyPicked = {
           user: nextUp.user,
-          handle: nextUp.user.username,
+          nickname,
           position: last.customId,
           preferences: nextUp.preferences,
           avatar: nextUp.avatar,
@@ -162,9 +167,10 @@ async function stackExecute(
       }
       const unpickedRoles = [...available];
       unpickedRoles.push('fill');
+      const nickname = await getNickname(interaction, nextUp.user);
       const recentlyPicked = {
         user: nextUp.user,
-        handle: nextUp.user.username,
+        nickname,
         position: shuffle(unpickedRoles)[0],
         preferences: nextUp.preferences,
         avatar: nextUp.avatar,
