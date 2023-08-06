@@ -1,7 +1,7 @@
 import { User, GuildMember } from 'discord.js';
 
 export type PlayerObject = {
-  user: User | GuildMember | Dummy;
+  user: User | Dummy;
   handle: string;
   position: string;
   preferences: string[];
@@ -14,7 +14,7 @@ export interface NextUp extends PlayerObject {
 }
 export type ConditionalPlayer = { player: User; condition: string };
 export type ConfirmedPlayer = {
-  player: User | GuildMember | Dummy;
+  player: User | Dummy;
 };
 
 export type Dummy = {
@@ -27,7 +27,7 @@ export type Dummy = {
 };
 
 export type PlayerToReady = {
-  gamer: User | GuildMember | Dummy;
+  gamer: User | Dummy;
   ready: boolean;
   pickTime: number;
 };

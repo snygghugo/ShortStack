@@ -21,11 +21,12 @@ import {
   pingMessage,
   playerIdentityConfirmedPlayer,
   playerIdentityGuildMember,
+  createDummy,
 } from './utilities';
 import { createButtonRow, modalComponent } from '../../utils/view';
 import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
-import { ConditionalPlayer, ConfirmedPlayer } from '../../utils/types';
+import { ConditionalPlayer, ConfirmedPlayer, Dummy } from '../../utils/types';
 import { getHandle, shuffle } from '../../utils/generalUtilities';
 import {
   getDotaRole,
@@ -105,7 +106,7 @@ export const setUp = async (
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   const confirmedPlayersWithoutDummies = confirmedPlayers.filter(
-    (p): p is { player: GuildMember | User } => {
+    (p): p is { player: User } => {
       return !('isDummy' in p);
     }
   );
@@ -166,67 +167,52 @@ export const setUp = async (
         break;
 
       case buttonOptions.dummy:
-        let dummyCollection = interaction.guild?.members.cache.filter(
-          dummy =>
-            dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
-        );
-        //FETCH MORE IF THE DUMMY COLLECTION IS SHORT
-        if (!dummyCollection)
-          throw new Error(
-            'The dummy array was unable to be created from cache!'
-          );
-        if ([...dummyCollection].length < 5) {
-          dummyCollection = (await interaction.guild?.members.fetch())?.filter(
-            dummy =>
-              dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
-          );
-          if (!dummyCollection)
-            throw new Error(
-              'The dummy array was unable to be created from fetch!'
-            );
+        // let dummyCollection = interaction.guild?.members.cache.filter(
+        //   dummy =>
+        //     dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
+        // );
+        // //FETCH MORE IF THE DUMMY COLLECTION IS SHORT
+        // if (!dummyCollection)
+        //   throw new Error(
+        //     'The dummy array was unable to be created from cache!'
+        //   );
+        // if ([...dummyCollection].length < 5) {
+        //   dummyCollection = (await interaction.guild?.members.fetch())?.filter(
+        //     dummy =>
+        //       dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
+        //   );
+        //   if (!dummyCollection)
+        //     throw new Error(
+        //       'The dummy array was unable to be created from fetch!'
+        //     );
+        // }
+        // const dummyArray = [...dummyCollection?.values()];
+        // const [dummy] = shuffle(dummyArray);
+        // if (dummy) {
+        const modalInteraction = await getDummyNameModal(i);
+        if (!modalInteraction) {
+          console.log('For some reason modalinteraction was falsy');
+          break;
         }
-        const dummyArray = [...dummyCollection?.values()];
-        const [dummy] = shuffle(dummyArray);
-        if (dummy) {
-          const modalInteraction = await dummySystem(
-            i,
-            condiPlayers,
-            confirmedPlayers,
-            dummy
+        if (!modalInteraction.isFromMessage())
+          throw new Error('Somehow modalInteraction is not from message');
+        const dummyName =
+          modalInteraction.fields.getTextInputValue('avatar') || 'Ghost';
+
+        if (!dummyName) break;
+        const dummy = createDummy(dummyName);
+        confirmedPlayers.push({ player: dummy });
+        await modalInteraction.update({
+          embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+        });
+        if (confirmedPlayers.length > 4) {
+          console.log(
+            "That's enough! Stopping the collector from within the dummy array stuff"
           );
-          if (!modalInteraction)
-            throw new Error('There is some error with the modalInteraction');
-          if (!modalInteraction.isFromMessage())
-            throw new Error('Somehow modalInteraction is not from message');
-          const newGuyName =
-            modalInteraction.fields.getTextInputValue('avatar') || 'Ghost';
-
-          if (!newGuyName) break;
-
-          const newGuy = {
-            player: {
-              name: newGuyName,
-              id: newGuyName,
-              username: newGuyName,
-              user: {
-                username: newGuyName,
-              },
-              displayAvatarURL: () => 'https://laggan.online/foppa.gif',
-              isDummy: true,
-            },
-          };
-          confirmedPlayers.push(newGuy);
-          await modalInteraction.update({
-            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-          });
-          if (confirmedPlayers.length > 4) {
-            console.log(
-              "That's enough! Stopping the collector from within the dummy array stuff"
-            );
-            collector.stop(
-              "That's enough! Stopping the collector from within the dummy array stuff"
-            );
-          }
+          collector.stop(
+            "That's enough! Stopping the collector from within the dummy array stuff"
+          );
+          // }
         }
         break;
 
@@ -500,12 +486,7 @@ async function stackIt(
   });
 }
 
-export const dummySystem = async (
-  interaction: ButtonInteraction,
-  condiPlayers: ConditionalPlayer[],
-  confirmedPlayers: ConfirmedPlayer[],
-  dummy: GuildMember
-) => {
+export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   //this is  a little busy
   const modal = new ModalBuilder()
     .setCustomId('textCollector')
@@ -523,18 +504,11 @@ export const dummySystem = async (
     .awaitModalSubmit({
       time: READYTIME * 1000,
       filter: i => i.user.id === interaction.user.id,
-      componentType: ComponentType.TextInput,
     })
     .catch(error => {
       console.error(error);
       return null;
     });
-  if (!submitted) {
-    await interaction.update({
-      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-    });
-    return;
-  }
   return submitted;
 };
 

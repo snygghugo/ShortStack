@@ -4,7 +4,7 @@ import {
   ThreadChannel,
   CollectedInteraction,
 } from 'discord.js';
-import { ConfirmedPlayer, PlayerToReady } from '../../utils/types';
+import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 
 // import axios from 'axios';
 
@@ -61,6 +61,15 @@ export const playerIdentity = (
 //     console.error(error);
 //   }
 // };
+
+export const createDummy = (name: string): Dummy => ({
+  name,
+  id: name,
+  username: name,
+  user: { username: name },
+  displayAvatarURL: () => 'https://laggan.online/foppa.gif',
+  isDummy: true,
+});
 
 export const removeFromArray = (
   array: ConfirmedPlayer[] | ConfirmedPlayer[],
