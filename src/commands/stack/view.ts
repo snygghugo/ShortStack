@@ -68,41 +68,6 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   };
 };
 
-// export const stackEmbed = async (
-//   playerArray: PlayerObject[],
-//   nextUp: NextUp | null
-// ) => {
-//   const playerFields = playerArray.map(player => stringPrettifier(player));
-//   const art = await artTime(playerArray);
-//   if (nextUp) {
-//     const embed = {
-//       color: (Math.random() * 0xffffff) << 0,
-//       fields: [{ name: 'Picking order: ', value: playerFields.join('\n') }],
-//       image: {
-//         url: 'attachment://dota-map.png',
-//       },
-//     };
-//     const embedObject = { embed: embed, file: art };
-//     return embedObject;
-//   }
-//   const finalText = finalMessageMaker(playerArray);
-//   const finalMessage = { text: finalText.finalMessage };
-//   const shortCommand = '`' + finalText.shortCommand + '`';
-//   const embed = {
-//     color: (Math.random() * 0xffffff) << 0,
-//     fields: [
-//       { name: 'Copy Code:', value: shortCommand },
-//       { name: 'Picking complete!', value: playerFields.join('\n') },
-//     ],
-//     image: {
-//       url: 'attachment://dota-map.png',
-//     },
-//     footer: finalMessage,
-//   };
-//   const embedObject = { embed: embed, file: art };
-//   return embedObject;
-// };
-
 const createAppropriatePadding = (position: string, randomed: number) => {
   switch (position) {
     case 'pos1':

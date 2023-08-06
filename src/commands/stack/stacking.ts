@@ -66,6 +66,24 @@ const updateArray = async (
   return updatedArray;
 };
 
+const createRecentlyPicked = async (
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  nextUp: NextUp,
+  position: string,
+  isRandomPick: boolean
+) => {
+  const { user, preferences, randomed, avatar } = nextUp;
+  const nickname = await getNickname(interaction, nextUp.user);
+  return {
+    user,
+    nickname,
+    position,
+    preferences,
+    randomed: randomed + (isRandomPick ? 1 : 0),
+    avatar,
+  };
+};
+
 async function stackExecute(
   playerArray: PlayerObject[],
   message: Message<true>,
@@ -113,11 +131,7 @@ async function stackExecute(
   });
   collector.on('collect', async i => {
     console.log(
-      `${i.user.username} clicked ${i.customId} for ${
-        nextUp.user instanceof User
-          ? nextUp.user.username
-          : nextUp.user.user.username
-      }`
+      `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
     );
     await i.deferReply();
     await i.deleteReply();
@@ -128,15 +142,12 @@ async function stackExecute(
       const last = collected.last();
       if (!last?.customId) {
         console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
-        const nickname = await getNickname(interaction, nextUp.user);
-        const recentlyPicked = {
-          user: nextUp.user,
-          nickname,
-          position: assignedRole,
-          preferences: nextUp.preferences,
-          avatar: nextUp.avatar,
-          randomed: nextUp.randomed,
-        };
+        const recentlyPicked = await createRecentlyPicked(
+          interaction,
+          nextUp,
+          assignedRole,
+          false
+        );
         stackExecute(
           updatedArray,
           message,
@@ -147,15 +158,12 @@ async function stackExecute(
         return;
       }
       if (last.customId !== 'random') {
-        const nickname = await getNickname(interaction, nextUp.user);
-        const recentlyPicked = {
-          user: nextUp.user,
-          nickname,
-          position: last.customId,
-          preferences: nextUp.preferences,
-          avatar: nextUp.avatar,
-          randomed: nextUp.randomed,
-        };
+        const recentlyPicked = await createRecentlyPicked(
+          interaction,
+          nextUp,
+          last.customId,
+          false
+        );
         stackExecute(
           updatedArray,
           message,
@@ -165,17 +173,14 @@ async function stackExecute(
         );
         return;
       }
-      const unpickedRoles = [...available];
-      unpickedRoles.push('fill');
-      const nickname = await getNickname(interaction, nextUp.user);
-      const recentlyPicked = {
-        user: nextUp.user,
-        nickname,
-        position: shuffle(unpickedRoles)[0],
-        preferences: nextUp.preferences,
-        avatar: nextUp.avatar,
-        randomed: nextUp.randomed + 1,
-      };
+      const unpickedRoles = [...available, 'fill'];
+      const [randomedPosition] = shuffle(unpickedRoles);
+      const recentlyPicked = await createRecentlyPicked(
+        interaction,
+        nextUp,
+        randomedPosition,
+        true
+      );
       stackExecute(
         updatedArray,
         message,
@@ -202,13 +207,6 @@ function whosNext(playerArray: PlayerObject[]): NextUp | null {
   if (filledPlayer) return Object.assign({ fillFlag: true }, filledPlayer);
   return null;
 }
-
-const userToMember = async (
-  player: PlayerObject,
-  interaction: ChatInputCommandInteraction
-) => {
-  return await interaction.guild?.members.fetch(player.user.id);
-};
 
 function appropriateRole(available: string[], nextUp: NextUp) {
   const foundPreference = nextUp.preferences.find(preference =>
