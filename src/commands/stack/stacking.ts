@@ -9,11 +9,7 @@ import {
 } from 'discord.js';
 import { request } from 'undici';
 import { PlayerObject, NextUp } from '../../utils/types';
-import {
-  getNameWithPing,
-  getNickname,
-  shuffle,
-} from '../../utils/generalUtilities';
+import { getNameWithPing, shuffle } from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 
@@ -167,14 +163,12 @@ async function stackExecute(
 function whosNext(playerArray: PlayerObject[]): NextUp | null {
   const unpickedPlayer = playerArray.find(player => !player.position);
   if (unpickedPlayer) {
-    unpickedPlayer.position = '<--';
     unpickedPlayer.position = '👈';
     return { ...unpickedPlayer, fillFlag: false };
   }
   const reversedArray = [...playerArray].reverse();
   const filledPlayer = reversedArray.find(player => player.position === 'fill');
   if (filledPlayer) {
-    filledPlayer.position = '<--';
     filledPlayer.position = '👈';
     return { ...filledPlayer, fillFlag: true };
   }

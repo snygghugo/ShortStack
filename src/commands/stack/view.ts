@@ -7,7 +7,6 @@ import {
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject, NextUp } from '../../utils/types';
-import { BLANK } from '../../utils/textContent';
 
 const artTime = async (playerArray: PlayerObject[]) => {
   const canvas = Canvas.createCanvas(308, 308);
