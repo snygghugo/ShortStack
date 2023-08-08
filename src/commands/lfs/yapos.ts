@@ -135,11 +135,7 @@ export const setUp = async (
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
       case buttonOptions.in:
-        if (
-          !confirmedPlayers.find(
-            ({ player }) => player.id === interaction.user.id
-          )
-        ) {
+        if (!confirmedPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(condiPlayers, i);
           const nickname = await getNickname(i, i.user);
           confirmedPlayers.push({ player: i.user, nickname });
@@ -156,15 +152,14 @@ export const setUp = async (
         break;
 
       case buttonOptions.condi:
-        if (
-          !condiPlayers.find(({ player }) => player.id === interaction.user.id)
-        ) {
-          removeFromArray(confirmedPlayers, i); //remove player from IN if they're in it
+        if (!condiPlayers.find(({ player }) => player.id === i.user.id)) {
+          removeFromArray(confirmedPlayers, i);
           await modalThing(i, condiPlayers, confirmedPlayers);
         }
         break;
 
       case buttonOptions.dummy:
+        console.log('we are in the dummy switch case');
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
           console.log('For some reason modalinteraction was falsy');
@@ -466,6 +461,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
   modal.addComponents(modalInput);
+  await interaction.showModal(modal);
   const submitted = await interaction
     .awaitModalSubmit({
       time: READYTIME * 1000,
