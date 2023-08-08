@@ -136,11 +136,9 @@ export const setUp = async (
     switch (i.customId) {
       case buttonOptions.in:
         if (
-          !confirmedPlayers.find(({ player }) => {
-            console.log('Comparing this id', player.id);
-            console.log('With this', interaction.user.id);
-            return player.id === interaction.user.id;
-          })
+          !confirmedPlayers.find(
+            ({ player }) => player.id === interaction.user.id
+          )
         ) {
           removeFromArray(condiPlayers, i);
           const nickname = await getNickname(i, i.user);
@@ -159,11 +157,7 @@ export const setUp = async (
 
       case buttonOptions.condi:
         if (
-          !condiPlayers.find(({ player }) => {
-            console.log('Comparing this id', player.id);
-            console.log('With this', interaction.user.id);
-            return player.id === interaction.user.id;
-          })
+          !condiPlayers.find(({ player }) => player.id === interaction.user.id)
         ) {
           removeFromArray(confirmedPlayers, i); //remove player from IN if they're in it
           await modalThing(i, condiPlayers, confirmedPlayers);
@@ -171,28 +165,6 @@ export const setUp = async (
         break;
 
       case buttonOptions.dummy:
-        // let dummyCollection = interaction.guild?.members.cache.filter(
-        //   dummy =>
-        //     dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
-        // );
-        // //FETCH MORE IF THE DUMMY COLLECTION IS SHORT
-        // if (!dummyCollection)
-        //   throw new Error(
-        //     'The dummy array was unable to be created from cache!'
-        //   );
-        // if ([...dummyCollection].length < 5) {
-        //   dummyCollection = (await interaction.guild?.members.fetch())?.filter(
-        //     dummy =>
-        //       dummy.user.bot && !confirmedPlayers.find(d => d.player == dummy)
-        //   );
-        //   if (!dummyCollection)
-        //     throw new Error(
-        //       'The dummy array was unable to be created from fetch!'
-        //     );
-        // }
-        // const dummyArray = [...dummyCollection?.values()];
-        // const [dummy] = shuffle(dummyArray);
-        // if (dummy) {
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
           console.log('For some reason modalinteraction was falsy');
@@ -494,15 +466,10 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
   modal.addComponents(modalInput);
-  const whatsThis = await interaction.showModal(modal);
-  console.log('whats this?', whatsThis);
   const submitted = await interaction
     .awaitModalSubmit({
       time: READYTIME * 1000,
-      filter: i => {
-        console.log('this is customId in the modal', i.customId);
-        return i.user.id === interaction.user.id && i.customId === uniqueId;
-      },
+      filter: i => i.user.id === interaction.user.id && i.customId === uniqueId,
     })
     .catch(error => {
       console.log('This is inside the modal error thing');
@@ -588,6 +555,7 @@ async function modalThing(
       return null;
     });
   if (!submitted) {
+    return;
     await interaction.update({
       embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     });
