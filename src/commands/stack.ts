@@ -23,32 +23,44 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
   if (!interaction.guildId) return playerArray;
 
   for (let i = 1; i < DOTA_PARTY_SIZE + 1; i++) {
-    const userToAdd = interaction.options.getUser('p' + i);
-    if (!userToAdd) throw new Error('Unable to find user!');
-    if (playerArray.some(({ user }) => user.id === userToAdd.id)) {
-      interaction.reply('Please provide 5 unique players!');
+    try {
+      const userToAdd = interaction.options.getUser('p' + i);
+      if (!userToAdd) throw new Error('Unable to find user!');
+      if (playerArray.some(({ user }) => user.id === userToAdd.id)) {
+        interaction.reply('Please provide 5 unique players!');
+        return;
+      }
+      let preferences = ['fill'];
+      if (guildHasPreferences) {
+        preferences = getPreferences(
+          userToAdd,
+          settingsObject,
+          interaction.guildId
+        );
+      }
+      console.log(
+        `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
+      );
+      const nickname = await getNickname(interaction, userToAdd);
+      const playerToAdd = {
+        user: userToAdd,
+        nickname,
+        position: '',
+        preferences: preferences,
+        randomed: 0,
+      };
+      playerArray.push(playerToAdd);
+    } catch (error) {
+      const errorMsg = (error as Error).message;
+      console.error(error);
+      await interaction.reply({
+        content:
+          'Something went wrong when setting up the player array! ' + errorMsg,
+        embeds: [],
+        components: [],
+      });
       return;
     }
-    let preferences = ['fill'];
-    if (guildHasPreferences) {
-      preferences = getPreferences(
-        userToAdd,
-        settingsObject,
-        interaction.guildId
-      );
-    }
-    console.log(
-      `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
-    );
-    const nickname = await getNickname(interaction, userToAdd);
-    const playerToAdd = {
-      user: userToAdd,
-      nickname,
-      position: '',
-      preferences: preferences,
-      randomed: 0,
-    };
-    playerArray.push(playerToAdd);
   }
   return shuffle(playerArray);
 };

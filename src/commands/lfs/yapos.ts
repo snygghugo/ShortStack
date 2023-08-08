@@ -305,7 +305,7 @@ async function readyChecker(
         collector.stop('Someone wants out!');
         break;
       case readyOptions.sudo:
-        forceReady(readyArray, pickTime, miliTime);
+        forceReady(readyArray, pickTime - miliTime);
         collector.stop();
         break;
       case readyOptions.ping:

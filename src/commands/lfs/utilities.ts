@@ -12,10 +12,10 @@ import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 //     [e?.id, e.player?.id].includes(interaction.user.id);
 // };
 
-export const playerIdentityConfirmedPlayer =
-  (interaction: ButtonInteraction | ButtonInteraction) =>
-  (confirmedPlayer: ConfirmedPlayer) =>
-    confirmedPlayer.player.id === interaction.user.id;
+// export const playerIdentityConfirmedPlayer =
+//   (interaction: ButtonInteraction | ButtonInteraction) =>
+//   (confirmedPlayer: ConfirmedPlayer) =>
+//     confirmedPlayer.player.id === interaction.user.id;
 
 // export const helpMeLittleHelper = async (queuer, method: string) => {
 //   const request = {
@@ -64,11 +64,9 @@ export const removeFromArray = (
   interaction: ButtonInteraction
 ) => {
   // const index = array.findIndex(playerIdentity(interaction));
-  const index = array.findIndex(({ player }) => {
-    console.log('Comparing this id', player.id);
-    console.log('With this', interaction.user.id);
-    return player.id === interaction.user.id;
-  });
+  const index = array.findIndex(
+    ({ player }) => player.id === interaction.user.id
+  );
   if (index > -1) {
     array.splice(index, 1); //Return the array instead probably
     return true;
@@ -108,22 +106,17 @@ export const handleIt = async (
   }
 };
 
-export const forceReady = (
-  readyArray: PlayerToReady[],
-  pickTime: number,
-  miliTime: number
-) => {
+export const forceReady = (readyArray: PlayerToReady[], pickTime: number) => {
   for (const player of readyArray) {
     if (!player.ready) {
       player.ready = true;
-      player.pickTime = pickTime - miliTime;
+      player.pickTime = pickTime;
     }
   }
 };
 
-export const everyoneReady = (readyArray: PlayerToReady[]) => {
-  return readyArray.filter(p => p.ready).length > 4;
-};
+export const everyoneReady = (readyArray: PlayerToReady[]) =>
+  readyArray.every(({ ready }) => ready);
 
 export const pingMessage = async (
   readyArray: PlayerToReady[],
@@ -138,5 +131,5 @@ export const pingMessage = async (
       reminders.push(gentleReminder);
     }
   }
-  reminders.map(async message => await message.delete());
+  reminders.forEach(async message => await message.delete());
 };

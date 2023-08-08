@@ -2,7 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { Client, Collection, GatewayIntentBits } from 'discord.js';
+import { ChannelType, Client, Collection, GatewayIntentBits } from 'discord.js';
 import { token } from './config.json';
 
 interface ClientWithCommands extends Client {
@@ -33,23 +33,30 @@ client.once('ready', async () => {
 });
 
 client.on('interactionCreate', async interaction => {
-  if (interaction.isChatInputCommand()) {
-    if (interaction.commandName) {
-      console.log('Here is the command name', interaction.commandName);
-    }
-    const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+  if (!interaction.isChatInputCommand()) return;
+  if (interaction.channel?.type !== ChannelType.GuildText) {
+    await interaction.reply({
+      content: 'Please only use ShortStack in normal text channels!',
+      ephemeral: true,
+    });
+    return;
+  }
 
-    try {
-      command.execute(interaction);
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({
-        content: 'There was an error while executing this command!',
-        ephemeral: true,
-        components: [],
-      });
-    }
+  if (interaction.commandName) {
+    console.log('Here is the command name', interaction.commandName);
+  }
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({
+      content: 'There was an error while executing this command!',
+      ephemeral: true,
+      components: [],
+    });
   }
 });
 

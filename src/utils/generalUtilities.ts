@@ -41,11 +41,16 @@ export const getNickname = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
   user: User | Dummy
 ) => {
-  if (user instanceof User) {
-    return (
-      (await interaction.guild?.members.fetch(user.id))?.nickname ||
-      user.username
-    );
+  try {
+    if (user instanceof User) {
+      return (
+        (await interaction.guild?.members.fetch(user.id))?.nickname ||
+        user.username
+      );
+    }
+    return user.username;
+  } catch (error) {
+    console.error(error);
+    throw new Error((error as Error).message);
   }
-  return user.username;
 };

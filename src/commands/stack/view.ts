@@ -68,29 +68,15 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   };
 };
 
-// const createAppropriatePadding = (position: string, randomed: number) => {
-//   switch (position) {
-//     case 'pos1':
-//     case 'pos2':
-//     case 'pos3':
-//     case 'pos4':
-//     case 'pos5':
-//     case 'fill':
-//       return `${' '.repeat(14 - randomed)}`;
-//     case '':
-//       return '';
-//   }
-// };
-// const prettyField = (playerObject: PlayerObject) => {
-//   const { position, randomed, nickname } = playerObject;
-//   const padding = createAppropriatePadding(position, randomed);
-//   if (nickname.length > 21) {
-//     return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\n${' '.repeat(
-//       19
-//     )}\``;
-//   }
-//   return `\` ${padding}${position}${'⁉️'.repeat(randomed)}\``;
-// };
+const prettifyString = ({ nickname, position, randomed }: PlayerObject) => {
+  const posAndRandom = position + '!?'.repeat(randomed);
+  if (position === '👈') {
+    return `\`${nickname}${posAndRandom
+      .padEnd(17)
+      .padStart(41 - nickname.length)}\``;
+  }
+  return `\`${nickname}${posAndRandom.padStart(41 - nickname.length)}\``;
+};
 
 export const stackEmbed = async (
   playerArray: PlayerObject[],
@@ -106,29 +92,6 @@ export const stackEmbed = async (
     .join('\n');
   // const positionField = playerArray.map(prettyField).join('\n');
 
-  const prettifyString = ({ nickname, position, randomed }: PlayerObject) => {
-    // const goalLength = position !== '👈' ? 38 : 25;
-    let goalLength2: number;
-    switch (position) {
-      case '':
-        goalLength2 = 41;
-        break;
-      case '👈':
-        goalLength2 = 43;
-        break;
-      default:
-        goalLength2 = 45;
-        break;
-    }
-    const neededLength =
-      goalLength2 - (nickname.length + position.length + randomed);
-    return `\`${nickname}${position.padStart(neededLength)}${'⁉️'.repeat(
-      randomed
-    )}\``;
-    // return `${nickname}${position.padStart(neededLength)}${'⁉️'.repeat(
-    //   randomed
-    // )}`;
-  };
   const mobileField = playerArray.map(prettifyString);
   const positionField = playerArray
     .map(({ position, randomed }) => `${position}${'⁉️'.repeat(randomed)}`)
@@ -140,38 +103,29 @@ export const stackEmbed = async (
         {
           name: 'Picking order:',
           value: `${mobileField.join('\n')}`,
-          // value: `\`\`\`${mobileField.join('\n')}\`\`\``,
         },
-        // { name: 'Picking order:', value: nameField, inline: true },
-        // { name: BLANK, value: positionField, inline: true },
       ],
       image: {
         url: 'attachment://dota-map.png',
       },
     };
-    // const embedObject = { embed: embed, file: art };
     return { embed, art };
   }
 
   const { finalMessage, shortCommand } = finalMessageMaker(playerArray);
-  // const finalPositionField = playerArray.map(prettyField).join('\n');
   const embed = {
     fields: [
       { name: 'Copy Code:', value: shortCommand },
       {
         name: 'Picking complete!',
         value: `${mobileField.join('\n')}`,
-        // value: `\`\`\`${mobileField.join('\n')}\`\`\``,
       },
-      // { name: 'Picking complete!', value: nameField, inline: true },
-      // { name: BLANK, value: positionField, inline: true },
     ],
     image: {
       url: 'attachment://dota-map.png',
     },
-    footer: { text: finalMessage }, //SORT THIS GUY BY POS ASCENDING
+    footer: { text: finalMessage },
   };
-  // const embedObject = { embed: embed, file: art };
   return { embed, art };
 };
 const createRoleButton = (

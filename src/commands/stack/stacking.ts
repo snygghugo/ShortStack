@@ -4,12 +4,11 @@ import {
   ChatInputCommandInteraction,
   Message,
   ButtonInteraction,
-  User,
   ComponentType,
   CollectedInteraction,
 } from 'discord.js';
 import { request } from 'undici';
-import { PlayerObject, NextUp, Dummy } from '../../utils/types';
+import { PlayerObject, NextUp } from '../../utils/types';
 import {
   getNameWithPing,
   getNickname,
@@ -28,8 +27,7 @@ export const stackSetup = async (
   if (!interaction.guildId) throw new Error('GuildId Issues');
   interaction.deleteReply();
   const channel = await getChannelFromSettings(interaction, 'dota');
-  const message =
-    oldMessage || (await channel.send('Setting up the beauty...'));
+  const message = oldMessage || (await channel.send('Setting up shop...'));
   if (!oldMessage) {
     await message.startThread({
       name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
@@ -39,7 +37,6 @@ export const stackSetup = async (
   }
   stackExecute(playerArray, message, pickTime, interaction);
 };
-// };
 
 const updateArray = async (
   playerArray: PlayerObject[],
@@ -64,24 +61,6 @@ const updateArray = async (
     updatedArray.push(recentlyPicked);
   }
   return updatedArray;
-};
-
-const createRecentlyPicked = async (
-  interaction: ChatInputCommandInteraction | ButtonInteraction,
-  nextUp: NextUp,
-  position: string,
-  isRandomPick: boolean
-) => {
-  const { user, preferences, randomed, avatar } = nextUp;
-  const nickname = await getNickname(interaction, nextUp.user);
-  return {
-    user,
-    nickname,
-    position,
-    preferences,
-    randomed: randomed + (isRandomPick ? 1 : 0),
-    avatar,
-  };
 };
 
 async function stackExecute(
@@ -142,12 +121,7 @@ async function stackExecute(
       const last = collected.last();
       if (!last?.customId) {
         console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
-        const recentlyPicked = await createRecentlyPicked(
-          interaction,
-          nextUp,
-          assignedRole,
-          false
-        );
+        const recentlyPicked = { ...nextUp, position: assignedRole };
         stackExecute(
           updatedArray,
           message,
@@ -158,12 +132,7 @@ async function stackExecute(
         return;
       }
       if (last.customId !== 'random') {
-        const recentlyPicked = await createRecentlyPicked(
-          interaction,
-          nextUp,
-          last.customId,
-          false
-        );
+        const recentlyPicked = { ...nextUp, position: last.customId };
         stackExecute(
           updatedArray,
           message,
@@ -175,12 +144,11 @@ async function stackExecute(
       }
       const unpickedRoles = [...available, 'fill'];
       const [randomedPosition] = shuffle(unpickedRoles);
-      const recentlyPicked = await createRecentlyPicked(
-        interaction,
-        nextUp,
-        randomedPosition,
-        true
-      );
+      const recentlyPicked = {
+        ...nextUp,
+        position: randomedPosition,
+        randomed: nextUp.randomed + 1,
+      };
       stackExecute(
         updatedArray,
         message,
@@ -190,7 +158,7 @@ async function stackExecute(
       );
       return;
     } catch (error) {
-      message.edit('There was an error baby  ' + error);
+      message.edit('There was an error, baby!  ' + error);
       console.log(error);
     }
   });
@@ -199,15 +167,16 @@ async function stackExecute(
 function whosNext(playerArray: PlayerObject[]): NextUp | null {
   const unpickedPlayer = playerArray.find(player => !player.position);
   if (unpickedPlayer) {
+    unpickedPlayer.position = '<--';
     unpickedPlayer.position = '👈';
-    return Object.assign({ fillFlag: false }, unpickedPlayer);
+    return { ...unpickedPlayer, fillFlag: false };
   }
-  //THIS WAY OF COPYING MIGHT GET FUCKED
   const reversedArray = [...playerArray].reverse();
   const filledPlayer = reversedArray.find(player => player.position === 'fill');
   if (filledPlayer) {
+    filledPlayer.position = '<--';
     filledPlayer.position = '👈';
-    return Object.assign({ fillFlag: true }, filledPlayer);
+    return { ...filledPlayer, fillFlag: true };
   }
   return null;
 }
@@ -236,6 +205,3 @@ function availableRoles(playerArray: PlayerObject[]) {
   }
   return standardRoles;
 }
-
-//Definierar en variabel som är en anonym funktion som gör att skrivs "rita(25, 32" så kommer det funka
-//const rita = (x, y) => context.drawImage(avatar, x, y, 50, 50);

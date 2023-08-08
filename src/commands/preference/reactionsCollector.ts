@@ -18,12 +18,12 @@ export const reactionCollector = async (
   const emojiCopy = [...emojiRoles];
   const chosenRoles: string[] = [];
 
-  const collectorFilter = (reaction: MessageReaction, user: User) =>
+  const filter = (reaction: MessageReaction, user: User) =>
     tsCompliantIncludes(emojiCopy, reaction.emoji.name) &&
     user.id === interactionUser.id;
 
   const collector = message.createReactionCollector({
-    filter: collectorFilter,
+    filter,
     max: 5,
     time: 5 * 60000,
   });

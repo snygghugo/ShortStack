@@ -11,26 +11,22 @@ const addUser = (option: SlashCommandUserOption) =>
     .setDescription('Anyone else?')
     .setRequired(false);
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('lfs')
-    .setDescription('Time to gauge dota interest')
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addUserOption(addUser),
+export const data = new SlashCommandBuilder()
+  .setName('lfs')
+  .setDescription('Time to gauge dota interest')
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addUserOption(addUser);
 
-  async execute(interaction: ChatInputCommandInteraction) {
-    const confirmedPlayers = await createConfirmedPlayers(interaction);
-    if (!confirmedPlayers) {
-      interaction.reply(
-        'Please provide unique players!\nLove, **ShortStack!**'
-      );
-      return;
-    }
+export const execute = async (interaction: ChatInputCommandInteraction) => {
+  const confirmedPlayers = await createConfirmedPlayers(interaction);
+  if (!confirmedPlayers) {
+    interaction.reply('Please provide unique players!\nLove, **ShortStack!**');
+    return;
+  }
 
-    interaction.deferReply();
-    interaction.deleteReply();
-    await setUp(interaction, confirmedPlayers);
-  },
+  interaction.deferReply();
+  interaction.deleteReply();
+  await setUp(interaction, confirmedPlayers);
 };
