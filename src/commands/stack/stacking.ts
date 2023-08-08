@@ -108,8 +108,9 @@ async function stackExecute(
     console.log(
       `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
     );
-    await i.deferReply();
-    await i.deleteReply();
+    i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS
+    // await i.deferReply();
+    // await i.deleteReply();
   });
 
   collector.on('end', async collected => {
