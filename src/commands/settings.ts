@@ -71,7 +71,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
   }
   if (trash) {
     options.trash = trash.id;
-    reply = `Roger! In the future I will output the trash stuff in ${trash}`;
+    reply = `Roger! In the future I will output the trash stuff in ${trash}! I don't really post any trash right now though, but in the future!`;
   }
   console.log('this is channel and role', options);
   console.log('This is a text channel baby');

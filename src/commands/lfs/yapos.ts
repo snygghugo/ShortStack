@@ -196,13 +196,14 @@ export const setUp = async (
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
           console.log('For some reason modalinteraction was falsy');
+          console.log('modal interaction', modalInteraction);
           break;
         }
         if (!modalInteraction.isFromMessage())
           throw new Error('Somehow modalInteraction is not from message');
         const dummyName =
-          modalInteraction.fields.getTextInputValue('dummyName') || 'Ghost';
-
+          modalInteraction.fields.getTextInputValue('dummyName');
+        console.log('this is the dummy name', dummyName);
         if (!dummyName) break;
         const dummy = createDummy(dummyName);
         confirmedPlayers.push({ player: dummy, nickname: dummyName });
@@ -482,9 +483,9 @@ async function stackIt(
 
 export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   //this is  a little busy
-  const modal = new ModalBuilder()
-    .setCustomId('textCollector')
-    .setTitle('Ok, buddy');
+  const uniqueId = Date.now().toString();
+  console.log('this is uniqueid', uniqueId);
+  const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
   const avatarInput = new TextInputBuilder()
     .setCustomId('dummyName')
     .setLabel('Who are you adding?')
@@ -493,13 +494,18 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
   modal.addComponents(modalInput);
-  await interaction.showModal(modal);
+  const whatsThis = await interaction.showModal(modal);
+  console.log('whats this?', whatsThis);
   const submitted = await interaction
     .awaitModalSubmit({
       time: READYTIME * 1000,
-      filter: i => i.user.id === interaction.user.id,
+      filter: i => {
+        console.log('this is customId in the modal', i.customId);
+        return i.user.id === interaction.user.id && i.customId === uniqueId;
+      },
     })
     .catch(error => {
+      console.log('This is inside the modal error thing');
       console.error(error);
       return null;
     });
@@ -561,9 +567,8 @@ async function modalThing(
   confirmedPlayers: ConfirmedPlayer[]
 ) {
   //this is  a little busy
-  const modal = new ModalBuilder()
-    .setCustomId('textCollector')
-    .setTitle('Ok, buddy');
+  const uniqueId = Date.now().toString();
+  const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
   const reasonInput = new TextInputBuilder()
     .setCustomId('reason')
     .setLabel("What's the holdup? Include ETA")
@@ -576,7 +581,7 @@ async function modalThing(
   const submitted = await interaction
     .awaitModalSubmit({
       time: READYTIME * 1000,
-      filter: i => i.user.id === interaction.user.id,
+      filter: i => i.user.id === interaction.user.id && i.customId === uniqueId,
     })
     .catch(error => {
       console.error(error);
