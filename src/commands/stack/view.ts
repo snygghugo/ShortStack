@@ -7,6 +7,7 @@ import {
 } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { PlayerObject, NextUp } from '../../utils/types';
+import { BLANK } from '../../utils/textContent';
 
 const artTime = async (playerArray: PlayerObject[]) => {
   const canvas = Canvas.createCanvas(308, 308);
@@ -101,8 +102,11 @@ export const stackEmbed = async (
       fields: [
         {
           name: 'Picking order:',
-          value: `${mobileField.join('\n')}`,
+          // value: `${mobileField.join('\n')}`,
+          value: nameField,
+          inline: true,
         },
+        { name: BLANK, value: positionField, inline: true },
       ],
       image: {
         url: 'attachment://dota-map.png',
