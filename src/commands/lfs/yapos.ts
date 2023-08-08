@@ -152,7 +152,7 @@ export const setUp = async (
         break;
 
       case buttonOptions.condi:
-        if (!condiPlayers.find(({ player }) => player.id === i.user.id)) {
+        if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(confirmedPlayers, i);
           await modalThing(i, condiPlayers, confirmedPlayers);
         }
