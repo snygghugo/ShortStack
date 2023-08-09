@@ -48,6 +48,8 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
         position: '',
         preferences: preferences,
         randomed: 0,
+        artTarget: false,
+        fillFlag: false,
       };
       playerArray.push(playerToAdd);
     } catch (error) {

@@ -1,20 +1,13 @@
-import {
-  ActionRowBuilder,
-  AttachmentBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  User,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, User } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
-import { PlayerObject, NextUp } from '../../utils/types';
+import { request } from 'undici';
+import { PlayerObject } from '../../utils/types';
 import { BLANK } from '../../utils/textContent';
 
-const artTime = async (playerArray: PlayerObject[]) => {
-  const canvas = Canvas.createCanvas(308, 308);
-  const context = canvas.getContext('2d');
-  const background = await Canvas.loadImage('./map.png');
-  context.drawImage(background, 0, 0, canvas.width, canvas.height);
-  context.beginPath();
+const artTime = async (
+  playerArray: PlayerObject[],
+  oldCanvas?: Canvas.Canvas
+) => {
   const positionsMap = new Map([
     ['pos1', { x: 235 - 10, y: 248 - 20 }],
     ['pos2', { x: 125, y: 125 }],
@@ -23,26 +16,36 @@ const artTime = async (playerArray: PlayerObject[]) => {
     ['pos5', { x: 185 - 10, y: 248 - 20 }],
   ]);
   const radius = 25;
+  const playerToDraw = playerArray.find(({ artTarget }) => artTarget);
+  if (oldCanvas) {
+    if (!playerToDraw) return oldCanvas;
+    const coordinatesToDraw = positionsMap.get(playerToDraw?.position);
+    if (!coordinatesToDraw) return oldCanvas;
+
+    const { body } = await request(
+      playerToDraw.user.displayAvatarURL({ extension: 'jpg' })
+    );
+    const playerAvatar = await body.arrayBuffer();
+    const avatar = await Canvas.loadImage(playerAvatar);
+    const { x, y } = coordinatesToDraw;
+    const context = oldCanvas.getContext('2d');
+    context.drawImage(avatar, x, y, radius * 2, radius * 2);
+    playerToDraw.artTarget = false;
+    return oldCanvas;
+  }
+
+  const newCanvas = Canvas.createCanvas(308, 308);
+  const context = newCanvas.getContext('2d');
+  const background = await Canvas.loadImage('./map.png');
+  context.drawImage(background, 0, 0, newCanvas.width, newCanvas.height);
+  context.beginPath();
+
   positionsMap.forEach(({ x, y }) => {
     context.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
     context.closePath();
   });
   context.clip();
-  for (let player of playerArray) {
-    if (player.avatar) {
-      if (positionsMap.has(player.position)) {
-        const coordinates = positionsMap.get(player.position);
-        if (coordinates) {
-          const { x, y } = coordinates;
-          const avatar = await Canvas.loadImage(player.avatar);
-          context.drawImage(avatar, x, y, radius * 2, radius * 2);
-        }
-      }
-    }
-  }
-  return new AttachmentBuilder(await canvas.encode('png'), {
-    name: 'dota-map.png',
-  });
+  return newCanvas;
 };
 
 const finalMessageMaker = (playerArray: PlayerObject[]) => {
@@ -80,7 +83,8 @@ const prettifyString = ({ nickname, position, randomed }: PlayerObject) => {
 
 export const stackEmbed = async (
   playerArray: PlayerObject[],
-  nextUp: NextUp | null
+  nextUp: PlayerObject | null,
+  oldCanvas?: Canvas.Canvas
 ) => {
   const nameField = playerArray
     .map(({ user }) => {
@@ -96,7 +100,7 @@ export const stackEmbed = async (
   const positionField = playerArray
     .map(({ position, randomed }) => `${position}${'!?'.repeat(randomed)}`)
     .join('\n');
-  const art = await artTime(playerArray);
+  const newCanvas = await artTime(playerArray, oldCanvas);
   if (nextUp) {
     const embed = {
       fields: [
@@ -112,7 +116,7 @@ export const stackEmbed = async (
         url: 'attachment://dota-map.png',
       },
     };
-    return { embed, art };
+    return { embed, newCanvas };
   }
 
   const { finalMessage, shortCommand } = finalMessageMaker(playerArray);
@@ -132,7 +136,7 @@ export const stackEmbed = async (
     },
     footer: { text: finalMessage },
   };
-  return { embed, art };
+  return { embed, newCanvas };
 };
 const createRoleButton = (
   id: string,
@@ -147,7 +151,7 @@ const createRoleButton = (
     .setDisabled(!available.includes(id));
 
 export const createRoleRows = (
-  nextUp: NextUp | null,
+  nextUp: PlayerObject | null,
   available: string[]
 ): ActionRowBuilder<ButtonBuilder>[] => {
   const row1 = new ActionRowBuilder<ButtonBuilder>()

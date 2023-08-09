@@ -429,22 +429,13 @@ async function stackIt(
         nickname: nickname,
         position: '',
         preferences,
+        artTarget: false,
+        fillFlag: false,
         randomed: 0,
       };
     });
     const shuffledChoices = shuffle(choices);
-    // const trashChannel = await getChannelFromSettings(interaction, 'trash');
-    // const stackThread = await trashChannel?.threads.create({
-    //   name: interaction?.user.username + "'s Dota Party",
-    //   autoArchiveDuration: 60,
-    //   reason: 'Time for stack!',
-    // });
     await stackSetup(interaction, shuffledChoices, standardTime, message);
-    // const button = linkButton(stackThread, 'Stack Thread');
-    // await message.edit({
-    //   content: 'Stack is running in the Stack Thread!',
-    //   components: [button],
-    // }); THIS GUY IS A LIE, DOES NOTHING ATM
   });
 }
 
@@ -474,55 +465,6 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     });
   return submitted;
 };
-
-// export const dummySystem = async (
-//   interaction: ButtonInteraction,
-//   condiPlayers: ConditionalPlayer[],
-//   confirmedPlayers: ConfirmedPlayer[],
-//   dummy: GuildMember
-// ) => {
-//   //this is  a little busy
-//   const modal = new ModalBuilder()
-//     .setCustomId('textCollector')
-//     .setTitle('Ok, buddy');
-//   const avatarInput = new TextInputBuilder()
-//     .setCustomId('avatar')
-//     .setLabel('Which Dummy is the Dummy representing?')
-//     .setPlaceholder('The Dummy this Dummy is representing is...')
-//     .setMaxLength(140)
-//     .setStyle(TextInputStyle.Short);
-//   const modalInput = modalComponent(avatarInput);
-//   modal.addComponents(modalInput);
-//   await interaction.showModal(modal);
-//   const submitted = await interaction
-//     .awaitModalSubmit({
-//       time: READYTIME * 1000,
-//       filter: i => i.user.id === interaction.user.id,
-//     })
-//     .catch(error => {
-//       console.error(error);
-//       return null;
-//     });
-//   if (!submitted) {
-//     await interaction.update({
-//       embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-//     });
-//     return;
-//   }
-//   const representing = ` *avatar of **${submitted.fields.getTextInputValue(
-//     'avatar'
-//   )}***`;
-
-//   confirmedPlayers.push({
-//     player: dummy,
-//     representing: representing,
-//   });
-//   if (!submitted.isFromMessage())
-//     throw new Error("Somehow this modal isn't from a message");
-// await submitted.update({
-//   embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-// });
-// };
 
 async function modalThing(
   interaction: ButtonInteraction,

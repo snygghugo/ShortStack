@@ -6,12 +6,9 @@ export type PlayerObject = {
   position: string;
   preferences: string[];
   randomed: number;
-  avatar?: ArrayBuffer;
-};
-
-export interface NextUp extends PlayerObject {
+  artTarget: boolean;
   fillFlag: boolean;
-}
+};
 export type ConditionalPlayer = {
   player: User;
   nickname: string;

@@ -6,12 +6,13 @@ import {
   ButtonInteraction,
   ComponentType,
   CollectedInteraction,
+  AttachmentBuilder,
 } from 'discord.js';
-import { request } from 'undici';
-import { PlayerObject, NextUp } from '../../utils/types';
+import { PlayerObject } from '../../utils/types';
 import { getNameWithPing, shuffle } from '../../utils/generalUtilities';
 import { getChannelFromSettings } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
+import { Canvas } from '@napi-rs/canvas';
 
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
@@ -34,44 +35,20 @@ export const stackSetup = async (
   stackExecute(playerArray, message, pickTime, interaction);
 };
 
-const updateArray = async (
-  playerArray: PlayerObject[],
-  recentlyPicked: PlayerObject | undefined
-) => {
-  if (!recentlyPicked) return playerArray;
-  const updatedArray: PlayerObject[] = [];
-  for (let player of playerArray) {
-    if (player.user !== recentlyPicked.user) {
-      updatedArray.push(player);
-      continue;
-    }
-    if (!recentlyPicked.position.startsWith('pos')) {
-      updatedArray.push(recentlyPicked);
-      continue;
-    }
-    const { body } = await request(
-      player.user.displayAvatarURL({ extension: 'jpg' })
-    );
-    const avatar = await body.arrayBuffer();
-    recentlyPicked.avatar = avatar;
-    updatedArray.push(recentlyPicked);
-  }
-  return updatedArray;
-};
-
-async function stackExecute(
+const stackExecute = async (
   playerArray: PlayerObject[],
   message: Message<true>,
   pickTime: number,
   interaction: ChatInputCommandInteraction | ButtonInteraction,
-  recentlyPicked?: PlayerObject
-) {
-  const updatedArray = await updateArray(playerArray, recentlyPicked);
-  const available = availableRoles(updatedArray);
-  const nextUp = whosNext(updatedArray);
+  oldCanvas?: Canvas
+) => {
+  const available = availableRoles(playerArray);
+  const nextUp = whosNext(playerArray);
   const buttonRows = createRoleRows(nextUp, available);
-  const { embed, art } = await stackEmbed(updatedArray, nextUp);
-
+  const { embed, newCanvas } = await stackEmbed(playerArray, nextUp, oldCanvas);
+  const art = new AttachmentBuilder(await newCanvas.encode('png'), {
+    name: 'dota-map.png',
+  });
   if (!nextUp) {
     await message.edit({
       content: 'All done!',
@@ -83,6 +60,9 @@ async function stackExecute(
   }
 
   const assignedRole = appropriateRole(available, nextUp);
+  nextUp.position = assignedRole;
+  nextUp.artTarget = true;
+
   const time = getTimestampInSeconds();
   const spaghettiTime = -1; //HURRY UP
 
@@ -104,86 +84,64 @@ async function stackExecute(
     max: 1,
     componentType: ComponentType.Button,
   });
+
   collector.on('collect', async i => {
     console.log(
       `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
     );
-    i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS
-    // await i.deferReply();
-    // await i.deleteReply();
+    switch (i.customId) {
+      case 'random':
+        const unpickedRoles = [...available, 'fill'];
+        const [randomedPosition] = shuffle(unpickedRoles);
+        nextUp.position = randomedPosition;
+        nextUp.randomed += 1;
+        break;
+      default:
+        nextUp.position = i.customId;
+    }
+    i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS, WITH RANDOM PHRASES
   });
 
-  collector.on('end', async collected => {
+  collector.on('end', () => {
     try {
-      const last = collected.last();
-      if (!last?.customId) {
+      if (collector.endReason === 'time') {
         console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
-        const recentlyPicked = { ...nextUp, position: assignedRole };
-        stackExecute(
-          updatedArray,
-          message,
-          pickTime,
-          interaction,
-          recentlyPicked
-        );
-        return;
       }
-      if (last.customId !== 'random') {
-        const recentlyPicked = { ...nextUp, position: last.customId };
-        stackExecute(
-          updatedArray,
-          message,
-          pickTime,
-          interaction,
-          recentlyPicked
-        );
-        return;
+      if (nextUp.position === 'fill') {
+        nextUp.artTarget = false;
       }
-      const unpickedRoles = [...available, 'fill'];
-      const [randomedPosition] = shuffle(unpickedRoles);
-      const recentlyPicked = {
-        ...nextUp,
-        position: randomedPosition,
-        randomed: nextUp.randomed + 1,
-      };
-      stackExecute(
-        updatedArray,
-        message,
-        pickTime,
-        interaction,
-        recentlyPicked
-      );
+      stackExecute(playerArray, message, pickTime, interaction, newCanvas);
       return;
     } catch (error) {
       message.edit('There was an error, baby!  ' + error);
       console.log(error);
     }
   });
-}
+};
 
-function whosNext(playerArray: PlayerObject[]): NextUp | null {
+const whosNext = (playerArray: PlayerObject[]): PlayerObject | null => {
   const unpickedPlayer = playerArray.find(player => !player.position);
   if (unpickedPlayer) {
     unpickedPlayer.position = '👈';
-    return { ...unpickedPlayer, fillFlag: false };
+    return unpickedPlayer;
   }
-  const reversedArray = [...playerArray].reverse();
-  const filledPlayer = reversedArray.find(player => player.position === 'fill');
+  const filledPlayer = playerArray.findLast(
+    player => player.position === 'fill'
+  );
   if (filledPlayer) {
     filledPlayer.position = '👈';
-    return { ...filledPlayer, fillFlag: true };
+    filledPlayer.fillFlag = true;
+    return filledPlayer;
   }
   return null;
-}
+};
 
-function appropriateRole(available: string[], nextUp: NextUp) {
+function appropriateRole(available: string[], nextUp: PlayerObject) {
   const foundPreference = nextUp.preferences.find(preference =>
     available.includes(preference)
   );
   if (foundPreference) return foundPreference;
-  if (!nextUp.fillFlag) {
-    return 'fill';
-  }
+  if (!nextUp.fillFlag) return 'fill';
   return shuffle(available)[0];
 }
 
