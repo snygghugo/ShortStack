@@ -94,7 +94,7 @@ export const stackEmbed = async (
 
   const mobileField = playerArray.map(prettifyString);
   const positionField = playerArray
-    .map(({ position, randomed }) => `${position}${'⁉️'.repeat(randomed)}`)
+    .map(({ position, randomed }) => `${position}${'!?'.repeat(randomed)}`)
     .join('\n');
   const art = await artTime(playerArray);
   if (nextUp) {
@@ -121,8 +121,11 @@ export const stackEmbed = async (
       { name: 'Copy Code:', value: shortCommand },
       {
         name: 'Picking complete!',
-        value: `${mobileField.join('\n')}`,
+        // value: `${mobileField.join('\n')}`,
+        value: nameField,
+        inline: true,
       },
+      { name: BLANK, value: positionField, inline: true },
     ],
     image: {
       url: 'attachment://dota-map.png',
