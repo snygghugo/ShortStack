@@ -322,6 +322,7 @@ async function readyChecker(
           return;
       }
     } else {
+      console.log('this is the else block before the stack button is made');
       const stackButton = createButtonRow('Stack it!', 'stack');
       await partyMessage.edit({
         content: finalMessageContent(collected),
