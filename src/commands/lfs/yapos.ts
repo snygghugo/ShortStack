@@ -321,15 +321,14 @@ async function readyChecker(
           await redoCollector(partyMessage, confirmedPlayers, partyThread);
           return;
       }
-    } else {
-      console.log('this is the else block before the stack button is made');
-      const stackButton = createButtonRow('Stack it!', 'stack');
-      await partyMessage.edit({
-        content: finalMessageContent(collected),
-        components: [stackButton],
-      });
-      await stackIt(partyMessage, confirmedPlayers, partyThread);
     }
+    console.log('this is the else block before the stack button is made');
+    const stackButton = createButtonRow('Stack it!', 'stack');
+    await partyMessage.edit({
+      content: finalMessageContent(collected),
+      components: [stackButton],
+    });
+    await stackIt(partyMessage, confirmedPlayers, partyThread);
   });
 
   // const embed = readyEmbed(readyArray);
