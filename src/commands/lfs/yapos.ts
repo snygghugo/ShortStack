@@ -257,9 +257,9 @@ async function readyChecker(
     console.log(i.user.username + ' clicked ' + i.customId);
     switch (i.customId) {
       case readyOptions.rdy:
-        const player = readyArray.find(e => {
-          return e.gamer.id === i.member?.user.id && e.ready === false;
-        });
+        const player = readyArray.find(
+          e => e.gamer.id === i.user.id && e.ready === false
+        );
         if (player) {
           player.ready = true;
           player.pickTime = pickTime - miliTime;
@@ -392,7 +392,9 @@ async function stackIt(
     max: 1,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => {});
+  collector.on('collect', async i => {
+    console.log('In the stack collector, collected', i);
+  });
 
   collector.on('end', async collected => {
     // Gör ljud när du stackar
@@ -404,8 +406,11 @@ async function stackIt(
     const interaction = collected.last();
     if (!interaction) {
       console.log(
-        'It is possible that they are actually ready but the interaction is falsy so who knows'
+        'It is possible that they are actually ready but the interaction is falsy so who knows',
+        interaction,
+        collected
       );
+
       await message.edit({
         content: "You actually don't seem all that ready.",
       });
