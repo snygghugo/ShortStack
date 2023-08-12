@@ -10,8 +10,9 @@ export const transferDb = async () => {
       const player = guildToCheck[key as keyof typeof guildToCheck];
       console.log('this is player', player);
       if (typeof player === 'object') {
-        const [playerId] = Object.keys(player);
-        console.log(playerId.substring(2, playerId.length - 1));
+        const [fullPlayer] = Object.keys(player);
+        const playerId = fullPlayer.substring(2, fullPlayer.length - 1);
+        console.log(playerId);
         const [preferences] = Object.values(player);
         console.log(preferences);
         await updateUserPrefs(playerId, preferences);
