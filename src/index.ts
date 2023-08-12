@@ -37,7 +37,7 @@ client.once('ready', async () => {
   } catch (error) {
     console.error(error);
   }
-  transferDb();
+  // transferDb(); if I need to update something form the JSON settings
 });
 
 client.on('interactionCreate', async interaction => {

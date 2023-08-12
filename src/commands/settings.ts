@@ -62,11 +62,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
   if (!interaction.guildId) throw new Error('GuildId is falsy');
   let reply = 'Nothing was changed!';
   const guildSettings = await getGuildFromDb(interaction.guildId);
-  const options: SettingsOptions = {};
   if (stacks) {
     guildSettings.yaposChannel = stacks.id;
-    const stackRes = await guildSettings.save();
-    console.log(stackRes);
     reply = `Roger! In the future I will output the good stuff in ${stacks}.`;
   }
   if (role) {
@@ -74,7 +71,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     await guildSettings.save();
     reply = `Roger! In the future I will ping ${role} when I set up a stack.`;
   }
-  console.log('this is channel and role', options);
   interaction.reply(reply);
   return;
 };
