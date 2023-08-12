@@ -1,9 +1,11 @@
 //add roles
 
+import { ChannelType, Client, Collection, GatewayIntentBits } from 'discord.js';
+import { connect } from 'mongoose';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ChannelType, Client, Collection, GatewayIntentBits } from 'discord.js';
 import { token } from './config.json';
+import { CONNECTION } from './utils/consts';
 
 interface ClientWithCommands extends Client {
   commands: Collection<string, any>;
@@ -29,6 +31,11 @@ for (const file of commandFiles) {
 }
 client.once('ready', async () => {
   console.log('ShortStack 2!');
+  try {
+    await connect(CONNECTION);
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 client.on('interactionCreate', async interaction => {

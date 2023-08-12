@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { prefEmbedMaker } from '../utils/view';
 import { reactionCollector } from './preference/reactionsCollector';
-import { savePreferences } from '../database/db';
+import { updateUserPrefs } from '../database/db';
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,6 +17,6 @@ module.exports = {
       createdMessage,
       interactionUser
     );
-    savePreferences(interaction, chosenRoles);
+    updateUserPrefs(interaction.user.id, chosenRoles);
   },
 };

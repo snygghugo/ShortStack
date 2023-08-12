@@ -2,8 +2,10 @@ import {
   User,
   ChatInputCommandInteraction,
   ButtonInteraction,
+  ChannelType,
 } from 'discord.js';
 import { Dummy } from './types';
+import { type } from 'node:os';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
@@ -53,4 +55,22 @@ export const getNickname = async (
     console.error(error);
     throw new Error((error as Error).message);
   }
+};
+
+export const getChannel = async (
+  channelId: string | undefined,
+  interaction: ChatInputCommandInteraction | ButtonInteraction
+) => {
+  if (channelId) {
+    const channelToReturn =
+      interaction.guild?.channels.cache.get(channelId) ||
+      (await interaction.guild?.channels.fetch(channelId)) ||
+      interaction.channel;
+    if (channelToReturn?.type !== ChannelType.GuildText)
+      throw new Error('Channel to return is not correct type');
+    return channelToReturn;
+  }
+  if (interaction.channel?.type !== ChannelType.GuildText)
+    throw new Error('Interaction.channel is not correct type');
+  return interaction.channel;
 };

@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { getNickname, shuffle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
-import { getSettings, getPreferences } from '../database/db';
+import { getGuildFromDb, getUserPrefs } from '../database/db';
 import { PlayerObject } from '../utils/types';
 
 const STANDARD_TIME = 60;
@@ -13,13 +13,6 @@ const DOTA_PARTY_SIZE = 5;
 
 const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
   const playerArray: PlayerObject[] = [];
-  if (!interaction.guildId) return playerArray;
-  let guildHasPreferences = false;
-  const settingsObject = await getSettings();
-  if (interaction.guildId in settingsObject) {
-    console.log('There is a guildId in the settings object');
-    guildHasPreferences = true;
-  }
   if (!interaction.guildId) return playerArray;
 
   for (let i = 1; i < DOTA_PARTY_SIZE + 1; i++) {
@@ -30,14 +23,8 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
         interaction.reply('Please provide 5 unique players!');
         return;
       }
-      let preferences = ['fill'];
-      if (guildHasPreferences) {
-        preferences = getPreferences(
-          userToAdd,
-          settingsObject,
-          interaction.guildId
-        );
-      }
+      const preferences = await getUserPrefs(interaction.user.id);
+
       console.log(
         `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
       );

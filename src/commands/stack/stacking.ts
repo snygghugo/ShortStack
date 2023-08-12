@@ -9,8 +9,12 @@ import {
   AttachmentBuilder,
 } from 'discord.js';
 import { PlayerObject } from '../../utils/types';
-import { getNameWithPing, shuffle } from '../../utils/generalUtilities';
-import { getChannelFromSettings } from '../../database/db';
+import {
+  getChannel,
+  getNameWithPing,
+  shuffle,
+} from '../../utils/generalUtilities';
+import { getGuildFromDb } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 import { Canvas } from '@napi-rs/canvas';
 
@@ -22,8 +26,9 @@ export const stackSetup = async (
 ) => {
   interaction.deferReply();
   if (!interaction.guildId) throw new Error('GuildId Issues');
-  interaction.deleteReply();
-  const channel = await getChannelFromSettings(interaction, 'dota');
+  const guildSettings = await getGuildFromDb(interaction.guildId);
+  const channel = await getChannel(guildSettings.yaposChannel, interaction);
+  // const channel = await getChannelFromSettings(interaction, 'dota');
   const message = oldMessage || (await channel.send('Setting up shop...'));
   if (!oldMessage) {
     await message.startThread({
@@ -32,6 +37,7 @@ export const stackSetup = async (
       reason: 'Time for stack!',
     });
   }
+  interaction.deleteReply();
   stackExecute(playerArray, message, pickTime, interaction);
 };
 

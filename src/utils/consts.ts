@@ -1,3 +1,6 @@
+import { credentials as CREDENTIALS } from '../config.json';
+export const CONNECTION = `mongodb+srv://${CREDENTIALS}@hugodata.kl5zxil.mongodb.net/?retryWrites=true&w=majority`;
+
 export const readyColours = {
   0: 0x000000, //black
   1: 0xcc3300, //red

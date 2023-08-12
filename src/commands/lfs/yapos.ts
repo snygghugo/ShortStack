@@ -10,6 +10,7 @@ import {
   ButtonInteraction,
   ComponentType,
   User,
+  ChannelType,
 } from 'discord.js';
 import {
   removeFromArray,
@@ -23,14 +24,14 @@ import {
 import { createButtonRow, modalComponent } from '../../utils/view';
 import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
 import { stackSetup } from '../stack/stacking';
-import { ConditionalPlayer, ConfirmedPlayer, Dummy } from '../../utils/types';
-import { shuffle, getNickname } from '../../utils/generalUtilities';
 import {
-  getDotaRole,
-  getChannelFromSettings,
-  getSettings,
-  getPreferences,
-} from '../../database/db';
+  ConditionalPlayer,
+  ConfirmedPlayer,
+  Dummy,
+  PlayerObject,
+} from '../../utils/types';
+import { shuffle, getNickname, getChannel } from '../../utils/generalUtilities';
+import { getGuildFromDb, getUserPrefs } from '../../database/db';
 import {
   ONEHOUR,
   buttonOptions,
@@ -40,6 +41,7 @@ import {
   standardTime,
 } from '../../utils/consts';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
+import { MongoGuildT } from '../../database/schema';
 
 // const invokeQueue = async (interaction: Interaction) => { //BELOW WE NEED THE QUEUE FOR THIS TO WORK
 //   const queuer = { id: interaction.user.toString() };
@@ -90,7 +92,9 @@ export const setUp = async (
   if (!interaction.guildId)
     throw new Error('Somehow there is a lacking GuildId in setUp!');
   const condiPlayers: ConditionalPlayer[] = [];
-  const roleCall = await getDotaRole(interaction.guildId);
+  const guildSettings = await getGuildFromDb(interaction.guildId);
+  // const roleCall = await getDotaRole(interaction.guildId);
+  const roleCall = guildSettings.yaposRole || 'Dota Lovers';
   const { setUpMessageContent: setUpMessageContent, outOfTime } =
     lfsSetUpStrings;
   // messageContent = await messageMaker(interaction); REMAKE THIS GUY ONCE QUEUE IS FIGURED OUT
@@ -102,7 +106,8 @@ export const setUp = async (
     components: inOutBut(),
   };
 
-  const dotaChannel = await getChannelFromSettings(interaction, 'dota');
+  // const dotaChannel = await getChannelFromSettings(interaction, 'dota');
+  const dotaChannel = await getChannel(guildSettings.yaposChannel, interaction);
   const dotaMessage = await dotaChannel.send(setUpMessage);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);
@@ -112,20 +117,9 @@ export const setUp = async (
   confirmedPlayersWithoutDummies.forEach(p =>
     partyThread.members.add(p.player)
   );
-  if (confirmedPlayers.length > 4) {
-    //CHECK IF THIS IS WHERE THE BUG IS? CONSOLE LOG THAT FUCKER OUT OF ORBIT
-    //it's not here :/
-    // ljudGöraren.ljudGöraren(userToMember(confirmedPlayers, interaction));
-    console.log(
-      'Now I am right before running the ready checker in the confirmedPlayers.length condition'
-    );
-    readyChecker(confirmedPlayers, dotaMessage, partyThread);
-    return;
-  }
-
   const filter = (i: CollectedMessageInteraction) =>
     i.customId in buttonOptions && i.message.id === dotaMessage.id;
-  const collector = dotaMessage.channel.createMessageComponentCollector({
+  const collector = dotaMessage.createMessageComponentCollector({
     filter,
     time: ONEHOUR * 1000,
     componentType: ComponentType.Button,
@@ -170,7 +164,6 @@ export const setUp = async (
           throw new Error('Somehow modalInteraction is not from message');
         const dummyName =
           modalInteraction.fields.getTextInputValue('dummyName');
-        console.log('this is the dummy name', dummyName);
         if (!dummyName) break;
         const dummy = createDummy(dummyName);
         confirmedPlayers.push({ player: dummy, nickname: dummyName });
@@ -184,7 +177,6 @@ export const setUp = async (
           collector.stop(
             "That's enough! Stopping the collector from within the dummy array stuff"
           );
-          // }
         }
         break;
 
@@ -207,23 +199,24 @@ export const setUp = async (
         content: outOfTime,
         components: [],
       });
-    } else {
-      //Time for a ready check
-      // const memberArray = userToMember(confirmedPlayers, interaction);
-      // ljudGöraren.ljudGöraren(memberArray);
-      console.log(
-        'Finishing and starting the ready checker from the ELSE block of the component collector'
-      );
-      readyChecker(confirmedPlayers, dotaMessage, partyThread);
+      return;
     }
+    //Time for a ready check
+    // const memberArray = userToMember(confirmedPlayers, interaction);
+    // ljudGöraren.ljudGöraren(memberArray);
+    console.log(
+      'Finishing and starting the ready checker from the ELSE block of the component collector'
+    );
+    readyChecker(confirmedPlayers, dotaMessage, partyThread);
   });
 };
 
-async function readyChecker(
+const readyChecker = async (
   confirmedPlayers: ConfirmedPlayer[],
   partyMessage: Message<true>,
   partyThread: AnyThreadChannel
-) {
+) => {
+  console.log('now we are in the ready checker');
   const {
     partyMessageContent,
     failedMessageContent,
@@ -239,7 +232,7 @@ async function readyChecker(
   const miliTime = getTimestamp(1);
   const filter = (i: CollectedMessageInteraction) =>
     i.message?.id === partyMessage.id && i.customId in readyOptions;
-  const collector = partyMessage.channel.createMessageComponentCollector({
+  const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
     componentType: ComponentType.Button,
@@ -337,7 +330,7 @@ async function readyChecker(
   //   embeds: [embed],
   //   components: rdyButtons(),
   // }); gonna try moving this fella up to see what happens
-}
+};
 
 async function redoCollector(
   partyMessage: Message<true>,
@@ -346,7 +339,7 @@ async function redoCollector(
 ) {
   const filter = (i: CollectedInteraction) =>
     i.message?.id === partyMessage.id && i.customId === 'redo';
-  const collector = partyMessage.channel.createMessageComponentCollector({
+  const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
     max: 1,
@@ -363,7 +356,7 @@ async function redoCollector(
           content: 'Ready check failed.',
           components: [],
         });
-        break;
+        return;
     }
   });
 }
@@ -386,15 +379,13 @@ async function stackIt(
 ) {
   const filter = (i: CollectedInteraction) =>
     i.message?.id === message.id && i.customId === 'stack';
-  const collector = message.channel.createMessageComponentCollector({
+  const collector = message.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
     max: 1,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => {
-    console.log('In the stack collector, collected', i);
-  });
+  collector.on('collect', async i => {});
 
   collector.on('end', async collected => {
     // Gör ljud när du stackar
@@ -416,20 +407,12 @@ async function stackIt(
       });
       return;
     }
-    let guildHasPreferences = false;
-    const settingsObject = await getSettings();
-    const { guildId } = interaction;
-    if (!guildId) throw new Error('Somehow there is no guildI');
-    if (guildId in settingsObject) {
-      console.log('There is a guildid in the settings object');
-      guildHasPreferences = true;
-    }
-    const choices = confirmedPlayers.map(({ player, nickname }) => {
-      let preferences = ['fill'];
-      if (guildHasPreferences) {
-        preferences = getPreferences(player, settingsObject, guildId);
-      }
-      return {
+
+    const playerArray: PlayerObject[] = [];
+
+    for (let { player, nickname } of confirmedPlayers) {
+      const preferences = await getUserPrefs(player.id);
+      playerArray.push({
         user: player,
         nickname: nickname,
         position: '',
@@ -437,17 +420,28 @@ async function stackIt(
         artTarget: false,
         fillFlag: false,
         randomed: 0,
-      };
-    });
-    const shuffledChoices = shuffle(choices);
-    await stackSetup(interaction, shuffledChoices, standardTime, message);
+      });
+    }
+
+    // const choices = confirmedPlayers.map(({ player, nickname }) => {
+    //   return {
+    //     user: player,
+    //     nickname: nickname,
+    //     position: '',
+    //     preferences,
+    //     artTarget: false,
+    //     fillFlag: false,
+    //     randomed: 0,
+    //   };
+    // });
+    const shuffledPlayerArray = shuffle(playerArray);
+    await stackSetup(interaction, shuffledPlayerArray, standardTime, message);
   });
 }
 
 export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   //this is  a little busy
   const uniqueId = Date.now().toString();
-  console.log('this is uniqueid', uniqueId);
   const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
   const avatarInput = new TextInputBuilder()
     .setCustomId('dummyName')
