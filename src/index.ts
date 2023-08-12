@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { token } from './config.json';
 import { CONNECTION } from './utils/consts';
+import { transferDb } from './database/transferDb';
 
 interface ClientWithCommands extends Client {
   commands: Collection<string, any>;
@@ -36,6 +37,7 @@ client.once('ready', async () => {
   } catch (error) {
     console.error(error);
   }
+  transferDb();
 });
 
 client.on('interactionCreate', async interaction => {
