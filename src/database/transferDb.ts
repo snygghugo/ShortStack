@@ -7,6 +7,7 @@ export const transferDb = async () => {
       settings['209707792314007552'][
         key as keyof (typeof settings)['209707792314007552']
       ];
+    console.log('this is player', player);
     if (typeof player === 'object') {
       const [playerId] = Object.keys(player);
       console.log(playerId.substring(2, playerId.length - 1));
