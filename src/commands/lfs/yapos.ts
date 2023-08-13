@@ -41,18 +41,6 @@ import {
   standardTime,
 } from '../../utils/consts';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
-import { MongoGuildT } from '../../database/schema';
-
-// const messageMaker = async (interaction: ChatInputCommandInteraction) => {
-//   const time = getTimestamp(1000);
-//   let initMessage = `${yapos} call, closes <t:${time + ONEHOUR}:R>`;
-//   //let initMessage = `FAKE yapos call, closes when it crashes`; //Use for testing purposes
-//   const queue = await invokeQueue(interaction);
-//   if (queue) {
-//     initMessage += `\nFor your interest ${queue.join(' & ')}`;
-//   }
-//   return initMessage;
-// };
 
 export const createConfirmedPlayers = async (
   interaction: ChatInputCommandInteraction
