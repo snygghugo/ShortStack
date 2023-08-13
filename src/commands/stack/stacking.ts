@@ -111,7 +111,9 @@ const stackExecute = async (
   collector.on('end', () => {
     try {
       if (collector.endReason === 'time') {
-        console.log(`Autopicked picked ${assignedRole} for ${nextUp.user}`);
+        console.log(
+          `Autopicked picked ${assignedRole} for ${nextUp.user.username}`
+        );
       }
       if (nextUp.position === 'fill') {
         nextUp.artTarget = false;

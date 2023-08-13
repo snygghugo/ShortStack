@@ -144,11 +144,9 @@ export const setUp = async (
         break;
 
       case buttonOptions.dummy:
-        console.log('we are in the dummy switch case');
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
-          console.log('For some reason modalinteraction was falsy');
-          console.log('modal interaction', modalInteraction);
+          console.log('falsy modal interaction', modalInteraction);
           break;
         }
         if (!modalInteraction.isFromMessage())
@@ -283,7 +281,6 @@ const readyChecker = async (
       components: [],
       embeds: [readyEmbed(readyArray)],
     });
-    console.log(`Everyone ready ser ut såhär: ${everyoneReady(readyArray)}`);
     if (!everyoneReady(readyArray)) {
       const time = getTimestamp(1000);
       const redoButton = createButtonRow('Re-Check', 'redo');

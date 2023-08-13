@@ -98,7 +98,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           guildSettings.queue,
           invokeesNeeded
         );
-        console.log('Looking to remove these fellas', toRemove);
         guildSettings.queue = guildSettings.queue.filter(
           queuerId => !toRemove.some(({ id }) => id === queuerId)
         );
@@ -109,8 +108,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       );
       break;
   }
-  const saveRes = await guildSettings.save();
-  console.log(saveRes);
+  await guildSettings.save();
 };
 
 type Invokee = {
@@ -160,9 +158,7 @@ const createInvokeEmbed = (
   invokeesNeeded: number,
   isFinished: boolean
 ) => {
-  console.log('is finished is', isFinished);
   const title = isFinished ? 'Invoke complete!' : 'Invoke in progress...';
-  console.log('title is', title);
   const embed = {
     title,
     fields: fillFields(invokees, invokeesNeeded, isFinished),

@@ -24,10 +24,6 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
         return;
       }
       const preferences = await getUserPrefs(userToAdd.id);
-
-      console.log(
-        `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
-      );
       const nickname = await getNickname(interaction, userToAdd);
       const playerToAdd = {
         user: userToAdd,
