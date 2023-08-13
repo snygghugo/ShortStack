@@ -52,7 +52,6 @@ export const reactionCollector = async (
   });
   await new Promise((res, rej) => {
     collector.on('end', collected => {
-      console.log('We are finished! ', collected.size);
       res(collected);
     });
   });

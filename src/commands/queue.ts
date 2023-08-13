@@ -8,7 +8,6 @@ import {
   Embed,
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
-import { SettingsOptions } from '../utils/types';
 import { getGuildFromDb } from '../database/db';
 import { getChannel } from '../utils/generalUtilities';
 import { FIVEMINUTES } from '../utils/consts';
@@ -135,24 +134,20 @@ const fillFields = (
   const returnArray = [];
   if (confirmedIn.length) {
     returnArray.push({
-      name: isFinished ? 'Those who are IN' : 'Those who answered the call',
+      name: isFinished ? 'In the stack' : 'Answered call',
       value: confirmedIn.map(({ id }) => id).join('\n'),
     });
   }
   if (heeded.length) {
     returnArray.push({
-      name: isFinished
-        ? 'Those who will remain in queue'
-        : 'Those who will remain in queue',
+      name: isFinished ? 'Will remain in queue' : 'Will remain in queue',
       value: heeded.map(({ id }) => id).join('\n'),
       inline: true,
     });
   }
   if (noHeed.length) {
     returnArray.push({
-      name: isFinished
-        ? 'Those who failed to answer and are removed'
-        : 'Those who have yet to answer',
+      name: isFinished ? 'Will be removed from queue' : 'No reply',
       value: noHeed.map(({ id }) => id).join('\n'),
       inline: true,
     });
