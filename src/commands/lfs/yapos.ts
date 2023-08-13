@@ -43,15 +43,6 @@ import {
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 import { MongoGuildT } from '../../database/schema';
 
-// const invokeQueue = async (interaction: Interaction) => { //BELOW WE NEED THE QUEUE FOR THIS TO WORK
-//   const queuer = { id: interaction.user.toString() };
-//   const queue = await helpMeLittleHelper(queuer, 'get');
-//   queue.data.forEach(async (invokee) => {
-//     await helpMeLittleHelper({ id: invokee }, 'delete');
-//   });
-//   return queue.data;
-// };
-
 // const messageMaker = async (interaction: ChatInputCommandInteraction) => {
 //   const time = getTimestamp(1000);
 //   let initMessage = `${yapos} call, closes <t:${time + ONEHOUR}:R>`;
@@ -92,12 +83,10 @@ export const setUp = async (
   if (!interaction.guildId)
     throw new Error('Somehow there is a lacking GuildId in setUp!');
   const condiPlayers: ConditionalPlayer[] = [];
-  const guildSettings = await getGuildFromDb(interaction.guildId);
-  // const roleCall = await getDotaRole(interaction.guildId);
-  const roleCall = guildSettings.yaposRole || 'Dota Lovers';
+  const { yaposChannel, yaposRole } = await getGuildFromDb(interaction.guildId);
+  const roleCall = yaposRole ? `<@&${yaposRole}>` : 'Dota Lovers';
   const { setUpMessageContent: setUpMessageContent, outOfTime } =
     lfsSetUpStrings;
-  // messageContent = await messageMaker(interaction); REMAKE THIS GUY ONCE QUEUE IS FIGURED OUT
   const time = getTimestamp(1000);
 
   const setUpMessage = {
@@ -105,9 +94,7 @@ export const setUp = async (
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
-
-  // const dotaChannel = await getChannelFromSettings(interaction, 'dota');
-  const dotaChannel = await getChannel(guildSettings.yaposChannel, interaction);
+  const dotaChannel = await getChannel(yaposChannel, interaction);
   const dotaMessage = await dotaChannel.send(setUpMessage);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   const partyThread = await pThreadCreator(interaction, dotaMessage);

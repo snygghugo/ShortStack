@@ -21,6 +21,7 @@ export const getGuildFromDb = async (guildId: string) => {
 
 export const getUserPrefs = async (userId: string) => {
   const res = await MongoUser.findOne({ userId });
+  console.log('This is the res from getUserPrefs', res);
   if (!res) {
     return ['fill'];
   }

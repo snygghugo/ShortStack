@@ -23,7 +23,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
         interaction.reply('Please provide 5 unique players!');
         return;
       }
-      const preferences = await getUserPrefs(interaction.user.id);
+      const preferences = await getUserPrefs(userToAdd.id);
 
       console.log(
         `${userToAdd.username} has prefs like this ${preferences.join(' > ')}`
