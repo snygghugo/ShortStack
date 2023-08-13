@@ -21,7 +21,6 @@ export const getGuildFromDb = async (guildId: string) => {
 
 export const getUserPrefs = async (userId: string) => {
   const res = await MongoUser.findOne({ userId });
-  console.log('This is the res from getUserPrefs', res);
   if (!res) {
     return ['fill'];
   }
@@ -38,7 +37,6 @@ export const updateUserPrefs = async (
   );
   if (!userHasPrefs) {
     const newUserPrefs = await new MongoUser({ userId, preferences }).save();
-    console.log(newUserPrefs);
     return newUserPrefs;
   }
   return userHasPrefs;

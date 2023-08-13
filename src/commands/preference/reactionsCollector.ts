@@ -28,7 +28,7 @@ export const reactionCollector = async (
     time: 5 * 60000,
   });
 
-  collector.on('collect', async (reaction, user) => {
+  collector.on('collect', async reaction => {
     if (!reaction.emoji.name) {
       console.error('Reaction seems weird', reaction);
       return;
@@ -41,7 +41,6 @@ export const reactionCollector = async (
       );
       return;
     }
-
     emojiCopy.splice(emojiCopy.indexOf(reaction.emoji.name), 1);
     chosenRoles.push(reaction.emoji.name);
     try {

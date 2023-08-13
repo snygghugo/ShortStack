@@ -13,6 +13,7 @@ import { getGuildFromDb } from '../database/db';
 import { getChannel } from '../utils/generalUtilities';
 import { FIVEMINUTES } from '../utils/consts';
 import { createButtonRow } from '../utils/view';
+import { getTimestamp } from './lfs/utilities';
 
 const QUEUE_OPTIONS = {
   join: 'join',
@@ -42,8 +43,15 @@ export const data = new SlashCommandBuilder()
       .addNumberOption((option: SlashCommandNumberOption) =>
         option
           .setName('invokees')
-          .setDescription('How many players do you want from the queue?')
+          .setDescription('How many slots are open?')
           .setRequired(true)
+          .addChoices(
+            { name: '1 Slot open', value: 1 },
+            { name: '2 Slots open', value: 2 },
+            { name: '3 Slots open', value: 3 },
+            { name: '4 Slots open', value: 4 },
+            { name: '5 Slots open', value: 5 }
+          )
       )
   );
 
@@ -110,23 +118,7 @@ type Invokee = {
 };
 
 const sortArrays = (invokees: Invokee[], invokeesNeeded: number) => {
-  // const hasHeeded = [];
-  // const confirmedHeeded = [];
-  // const hasNotHeeded = [];
-  // for (let i = 0; i < invokees.length; i++) {
-  //   const invokee = invokees[i];
-  //   if (!invokee.hasHeeded) {
-  //     hasNotHeeded.push(invokee);
-  //     continue;
-  //   }
-  //   if (invokee.hasHeeded && confirmedHeeded.length < invokeesNeeded) {
-  //     confirmedHeeded.push(invokee);
-  //     continue;
-  //   }
-  //   hasHeeded.push(invokee);
-  // }
-
-  const everyoneHeeded = invokees.filter(({ hasHeeded }, i) => hasHeeded);
+  const everyoneHeeded = invokees.filter(({ hasHeeded }) => hasHeeded);
   const confirmedInArray = everyoneHeeded.splice(0, invokeesNeeded);
   const outArray = invokees.filter(({ hasHeeded }) => !hasHeeded);
   return [everyoneHeeded, confirmedInArray, outArray];
@@ -139,25 +131,26 @@ const fillFields = (
 ) => {
   const [heeded, confirmedIn, noHeed] = sortArrays(invokees, invokeesNeeded);
   const returnArray = [];
-  if (heeded.length) {
-    returnArray.push({
-      name: isFinished ? 'Those who will remain in queue' : 'Those who heeded',
-      value: heeded.map(({ id }) => id).join('\n'),
-      inline: true,
-    });
-  }
   if (confirmedIn.length) {
     returnArray.push({
-      name: isFinished ? 'Those who are IN' : 'The heeded who queued first',
+      name: isFinished ? 'Those who are IN' : 'Those who answered the call',
       value: confirmedIn.map(({ id }) => id).join('\n'),
+    });
+  }
+  if (heeded.length) {
+    returnArray.push({
+      name: isFinished
+        ? 'Those who will remain in queue'
+        : 'Those who will remain in queue',
+      value: heeded.map(({ id }) => id).join('\n'),
       inline: true,
     });
   }
   if (noHeed.length) {
     returnArray.push({
       name: isFinished
-        ? 'Those who failed to heed and lost their spot'
-        : 'Those who has yet to heed',
+        ? 'Those who failed to answer and are removed'
+        : 'Those who have yet to answer',
       value: noHeed.map(({ id }) => id).join('\n'),
       inline: true,
     });
@@ -170,9 +163,11 @@ const createInvokeEmbed = (
   invokeesNeeded: number,
   isFinished: boolean
 ) => {
+  console.log('is finished is', isFinished);
+  const title = isFinished ? 'Invoke complete!' : 'Invoke in progress...';
+  console.log('title is', title);
   const embed = {
-    color: 0x0099ff,
-    title: isFinished ? 'Invoke complete!' : 'Invoke in progress...',
+    title,
     fields: fillFields(invokees, invokeesNeeded, isFinished),
   };
   return embed;
@@ -192,9 +187,11 @@ const invokeMessageCollector = async (
     'heedCall',
     ButtonStyle.Primary
   );
-
+  const time = getTimestamp(1000);
   message.edit({
-    content: 'The Stack calls for aid!',
+    content: `The Stack calls for aid! \n${queue.join(
+      '& '
+    )} heed the call or be removed from the queue. Ends in <t:${time}:R>`,
     embeds: [createInvokeEmbed(invokees, invokeesNeeded, false)],
     components: [button],
   });
@@ -220,11 +217,12 @@ const invokeMessageCollector = async (
     });
   });
 
-  await new Promise<void>((res, rej) => {
-    collector.on('end', async collected => {
+  await new Promise<void>((res, _rej) => {
+    collector.on('end', async => {
       message.edit({
         content: 'Very cool',
         embeds: [createInvokeEmbed(invokees, invokeesNeeded, true)],
+        components: [],
       });
       res();
     });
