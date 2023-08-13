@@ -9,6 +9,8 @@ import {
 const MongoUser = model<MongoUserT>('MongoUser', mongoUserSchema);
 const MongoGuild = model<MongoGuildT>('MongoGuild', mongoGuildSchema);
 
+export const removeFromQueue = (guildSettings: MongoGuildT, user: string) => {};
+
 export const getGuildFromDb = async (guildId: string) => {
   const existingGuild = await MongoGuild.findOne({ guildId });
   if (!existingGuild) {

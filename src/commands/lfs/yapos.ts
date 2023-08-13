@@ -83,14 +83,16 @@ export const setUp = async (
   if (!interaction.guildId)
     throw new Error('Somehow there is a lacking GuildId in setUp!');
   const condiPlayers: ConditionalPlayer[] = [];
-  const { yaposChannel, yaposRole } = await getGuildFromDb(interaction.guildId);
+  const { yaposChannel, yaposRole, queue } = await getGuildFromDb(
+    interaction.guildId
+  );
   const roleCall = yaposRole ? `<@&${yaposRole}>` : 'Dota Lovers';
   const { setUpMessageContent: setUpMessageContent, outOfTime } =
     lfsSetUpStrings;
   const time = getTimestamp(1000);
 
   const setUpMessage = {
-    content: setUpMessageContent(roleCall, time + ONEHOUR), //this will later be messageContent
+    content: setUpMessageContent(roleCall, time + ONEHOUR, queue), //this will later be messageContent
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
@@ -310,13 +312,6 @@ const readyChecker = async (
     });
     await stackIt(partyMessage, confirmedPlayers, partyThread);
   });
-
-  // const embed = readyEmbed(readyArray);
-  // partyMessage.edit({
-  //   content: `Ready check closes <t:${time + READYTIME}:R>`,
-  //   embeds: [embed],
-  //   components: rdyButtons(),
-  // }); gonna try moving this fella up to see what happens
 };
 
 async function redoCollector(
@@ -409,18 +404,6 @@ async function stackIt(
         randomed: 0,
       });
     }
-
-    // const choices = confirmedPlayers.map(({ player, nickname }) => {
-    //   return {
-    //     user: player,
-    //     nickname: nickname,
-    //     position: '',
-    //     preferences,
-    //     artTarget: false,
-    //     fillFlag: false,
-    //     randomed: 0,
-    //   };
-    // });
     const shuffledPlayerArray = shuffle(playerArray);
     await stackSetup(interaction, shuffledPlayerArray, standardTime, message);
   });
@@ -479,10 +462,6 @@ async function modalThing(
       return null;
     });
   if (!submitted) {
-    return;
-    await interaction.update({
-      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-    });
     return;
   }
   const time = getTimestamp(1000);

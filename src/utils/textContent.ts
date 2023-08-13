@@ -40,8 +40,13 @@ export const rdyButtonsLabels = {
 };
 
 export const lfsSetUpStrings = {
-  setUpMessageContent: (roleCall: string, time: number) =>
-    `Calling all ${roleCall}! Closes <t:${time}:R>`,
+  setUpMessageContent: (roleCall: string, time: number, queue: string[]) => {
+    let messageContent = `Calling all ${roleCall}! Closes <t:${time}:R>`;
+    if (queue.length) {
+      messageContent += `\n ${queue.join(' & ')} for your consideration`;
+    }
+    return messageContent;
+  },
   outOfTime: 'Looks like you ran out of time, darlings!',
 };
 

@@ -99,9 +99,10 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           guildSettings.queue,
           invokeesNeeded
         );
-        guildSettings.queue = guildSettings.queue.filter((queuerId, i) => {
-          return toRemove[i].id !== queuerId;
-        });
+        console.log('Looking to remove these fellas', toRemove);
+        guildSettings.queue = guildSettings.queue.filter(
+          queuerId => !toRemove.some(({ id }) => id === queuerId)
+        );
         break;
       }
       interaction.reply(
@@ -109,7 +110,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       );
       break;
   }
-  await guildSettings.save();
+  const saveRes = await guildSettings.save();
+  console.log(saveRes);
 };
 
 type Invokee = {
