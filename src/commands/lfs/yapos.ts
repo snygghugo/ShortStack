@@ -83,22 +83,24 @@ export const setUp = async (
   if (!interaction.guildId)
     throw new Error('Somehow there is a lacking GuildId in setUp!');
   const condiPlayers: ConditionalPlayer[] = [];
-  const { yaposChannel, yaposRole, queue } = await getGuildFromDb(
-    interaction.guildId
-  );
-  const roleCall = yaposRole ? `<@&${yaposRole}>` : 'Dota Lovers';
+  const guildSettings = await getGuildFromDb(interaction.guildId);
+  const roleCall = guildSettings.yaposRole
+    ? `<@&${guildSettings.yaposRole}>`
+    : 'Dota Lovers';
   const { setUpMessageContent: setUpMessageContent, outOfTime } =
     lfsSetUpStrings;
   const time = getTimestamp(1000);
 
   const setUpMessage = {
-    content: setUpMessageContent(roleCall, time + ONEHOUR, queue), //this will later be messageContent
+    content: setUpMessageContent(roleCall, time + ONEHOUR, guildSettings.queue), //this will later be messageContent
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
-  const dotaChannel = await getChannel(yaposChannel, interaction);
+  const dotaChannel = await getChannel(guildSettings.yaposChannel, interaction);
   const dotaMessage = await dotaChannel.send(setUpMessage);
   if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
+  guildSettings.queue = [];
+  await guildSettings.save();
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   const confirmedPlayersWithoutDummies = confirmedPlayers.filter(
     (p): p is { player: User; nickname: string } => !('isDummy' in p)
