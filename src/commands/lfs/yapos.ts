@@ -216,7 +216,7 @@ const readyChecker = async (
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);
   const filter = (i: CollectedMessageInteraction) =>
-    i.message?.id === partyMessage.id && i.customId in READY_BUTTONS;
+    i.customId in READY_BUTTONS;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
@@ -230,10 +230,6 @@ const readyChecker = async (
     components: rdyButtons(),
   });
   console.log('this is after the edit');
-  if (confirmedPlayers.length === 5) {
-    console.log('The party is already full! Skipping ahead');
-    collector.stop();
-  }
   collector.on('collect', async i => {
     const pickTime = getTimestamp(1);
     console.log(i.user.username + ' clicked ' + i.customId);
