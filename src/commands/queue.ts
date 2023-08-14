@@ -66,7 +66,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       }
       guildSettings.queue.push(interaction.user.toString());
       interaction.reply(
-        `You're in! Queue looks like this: \n ${guildSettings.queue.join('\n')}`
+        `You're in! Queue looks like this:\n${guildSettings.queue.join('\n')}`
       );
       break;
     case QUEUE_OPTIONS.leave:
@@ -74,15 +74,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         user => user !== interaction.user.toString()
       );
       interaction.reply(
-        `You're out! Queue looks like this: \n ${guildSettings.queue.join(
-          '\n'
-        )}`
+        `You're out! Queue looks like this:\n${guildSettings.queue.join('\n')}`
       );
       break;
     case QUEUE_OPTIONS.invoke:
       if (guildSettings.queue.length < 1)
         return interaction.reply('Queue is empty!');
-
       const invokeesNeeded = interaction.options.getNumber('invokees');
       if (invokeesNeeded && invokeesNeeded > 0 && invokeesNeeded < 6) {
         interaction.deferReply();
@@ -178,9 +175,11 @@ const invokeMessageCollector = async (
   const button = createButtonRow(QUEUE_BUTTON);
   const time = getTimestamp(1000);
   message.edit({
-    content: `The Stack calls for aid! \n${queue.join(
+    content: `The Stack calls for aid!\n${queue.join(
       '& '
-    )} heed the call or be removed from the queue. Ends in <t:${time}:R>`,
+    )} heed the call or be removed from the queue. Ends in <t:${
+      time + FIVEMINUTES
+    }:R>`,
     embeds: [createInvokeEmbed(invokees, invokeesNeeded, false)],
     components: [button],
   });
@@ -209,7 +208,7 @@ const invokeMessageCollector = async (
   await new Promise<void>((res, _rej) => {
     collector.on('end', async => {
       message.edit({
-        content: 'Very cool',
+        content: '',
         embeds: [createInvokeEmbed(invokees, invokeesNeeded, true)],
         components: [],
       });

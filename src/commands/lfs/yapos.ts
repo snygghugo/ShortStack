@@ -15,7 +15,6 @@ import {
 import {
   removeFromArray,
   getTimestamp,
-  handleIt,
   forceReady,
   everyoneReady,
   pingMessage,
@@ -323,7 +322,9 @@ async function redoCollector(
     max: 1,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => await handleIt(i, 'Again!'));
+  collector.on('collect', async i => {
+    await i.update('Again!');
+  });
   collector.on('end', async collected => {
     switch (collected.last()?.customId) {
       case REDO_BUTTON.btnId:

@@ -1,8 +1,4 @@
-import {
-  ButtonInteraction,
-  ThreadChannel,
-  CollectedInteraction,
-} from 'discord.js';
+import { ButtonInteraction, ThreadChannel } from 'discord.js';
 import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 
 export const createDummy = (name: string): Dummy => ({
@@ -31,19 +27,6 @@ export const removeFromArray = (
 
 export const getTimestamp = (mod: number) => {
   return Math.floor(Date.now() / mod);
-};
-
-export const handleIt = async (
-  i: CollectedInteraction,
-  flavourText: string
-) => {
-  try {
-    console.log('Handling it!');
-    await i.reply(flavourText);
-    await i.deleteReply();
-  } catch (error) {
-    console.log(error);
-  }
 };
 
 export const forceReady = (readyArray: PlayerToReady[], pickTime: number) => {

@@ -11,9 +11,9 @@ const artTime = async (
   const positionsMap = new Map([
     ['pos1', { x: 235 - 10, y: 248 - 20 }],
     ['pos2', { x: 125, y: 125 }],
-    ['pos3', { x: 10, y: 25 }],
-    ['pos4', { x: 100, y: 40 }],
-    ['pos5', { x: 185 - 10, y: 248 - 20 }],
+    ['pos3', { x: 10 + 18, y: 25 + 35 }],
+    ['pos4', { x: 100 - 5, y: 40 + 10 }],
+    ['pos5', { x: 185 - 30, y: 248 - 50 }],
   ]);
   const radius = 25;
   const playerToDraw = playerArray.find(({ artTarget }) => artTarget);

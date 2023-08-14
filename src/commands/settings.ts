@@ -51,6 +51,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
   const guildSettings = await getGuildFromDb(interaction.guildId);
   if (stacks) {
     guildSettings.yaposChannel = stacks.id;
+    await guildSettings.save();
     reply = `Roger! In the future I will output the good stuff in ${stacks}.`;
   }
   if (role) {
