@@ -184,6 +184,11 @@ export const setUp = async (
     console.log(
       'Finishing and starting the ready checker from the ELSE block of the component collector'
     );
+    await dotaMessage.edit({
+      content: 'Setting up ready check...',
+      components: [],
+      embeds: [],
+    });
     readyChecker(confirmedPlayers, dotaMessage, partyThread);
   });
 };
@@ -214,14 +219,18 @@ const readyChecker = async (
     time: READYTIME * 1000,
     componentType: ComponentType.Button,
   });
-  //THIS GUY IS NEW HERE, HE USED TO BE DOWN BELOW!
   const embed = readyEmbed(readyArray);
+  console.log('right before the edit fires off');
   await partyMessage.edit({
     content: partyMessageContent(time + READYTIME),
     embeds: [embed],
     components: rdyButtons(),
   });
-
+  console.log('this is after the edit');
+  if (confirmedPlayers.length === 5) {
+    console.log('The party is already full! Skipping ahead');
+    collector.stop();
+  }
   collector.on('collect', async i => {
     const pickTime = getTimestamp(1);
     console.log(i.user.username + ' clicked ' + i.customId);
