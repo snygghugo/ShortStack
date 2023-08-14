@@ -1,4 +1,4 @@
-import { User } from 'discord.js';
+import { User, ButtonStyle } from 'discord.js';
 
 export type PlayerObject = {
   user: User | Dummy;
@@ -47,4 +47,10 @@ export type SettingsOptions = {
   stacks?: string;
   role?: string;
   trash?: string;
+};
+
+export type BtnConfig = {
+  btnText: string;
+  btnId: string;
+  btnStyle: ButtonStyle;
 };

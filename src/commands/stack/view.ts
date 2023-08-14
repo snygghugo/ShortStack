@@ -94,8 +94,6 @@ export const stackEmbed = async (
       return user.username;
     })
     .join('\n');
-  // const positionField = playerArray.map(prettyField).join('\n');
-
   const mobileField = playerArray.map(prettifyString);
   const positionField = playerArray
     .map(({ position, randomed }) => `${position}${'!?'.repeat(randomed)}`)

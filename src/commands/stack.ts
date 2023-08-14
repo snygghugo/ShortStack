@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { getNickname, shuffle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
-import { getGuildFromDb, getUserPrefs } from '../database/db';
+import { getUserPrefs } from '../database/db';
 import { PlayerObject } from '../utils/types';
 
 const STANDARD_TIME = 60;
@@ -29,7 +29,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
         user: userToAdd,
         nickname,
         position: '',
-        preferences: preferences,
+        preferences,
         randomed: 0,
         artTarget: false,
         fillFlag: false,
@@ -57,22 +57,20 @@ const addUser = (option: SlashCommandUserOption) => {
     .setRequired(true);
 };
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('stack')
-    .setDescription('Dota 2 role selection tool')
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addUserOption(addUser)
-    .addIntegerOption(option =>
-      option.setName('time').setDescription('Pick time')
-    ),
-  execute: async function setup(interaction: ChatInputCommandInteraction) {
-    const pickTime = interaction.options.getInteger('time') || STANDARD_TIME;
-    const playerArray = await createPlayerArray(interaction);
-    if (!playerArray) return;
-    stackSetup(interaction, playerArray, pickTime);
-  },
+export const data = new SlashCommandBuilder()
+  .setName('stack')
+  .setDescription('Dota 2 role selection tool')
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addUserOption(addUser)
+  .addIntegerOption(option =>
+    option.setName('time').setDescription('Pick time')
+  );
+export const execute = async (interaction: ChatInputCommandInteraction) => {
+  const pickTime = interaction.options.getInteger('time') || STANDARD_TIME;
+  const playerArray = await createPlayerArray(interaction);
+  if (!playerArray) return;
+  stackSetup(interaction, playerArray, pickTime);
 };

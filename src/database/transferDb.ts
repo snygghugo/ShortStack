@@ -5,10 +5,8 @@ import { promises as fs } from 'fs';
 export const transferDb = async () => {
   const data = await fs.readFile('settings.json', 'utf-8');
   const settings = JSON.parse(data) as HugoData;
-  console.log('this is settings', settings);
   for (const guild in settings) {
     const guildToCheck = settings[guild as keyof typeof settings];
-    console.log('this is guildtocheck', guildToCheck);
     for (const key in guildToCheck) {
       const playerList = guildToCheck[key as keyof typeof guildToCheck];
       console.log('this is playerList', playerList);

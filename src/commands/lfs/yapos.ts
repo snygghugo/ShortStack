@@ -10,7 +10,7 @@ import {
   ButtonInteraction,
   ComponentType,
   User,
-  ChannelType,
+  ButtonStyle,
 } from 'discord.js';
 import {
   removeFromArray,
@@ -27,18 +27,19 @@ import { stackSetup } from '../stack/stacking';
 import {
   ConditionalPlayer,
   ConfirmedPlayer,
-  Dummy,
   PlayerObject,
 } from '../../utils/types';
 import { shuffle, getNickname, getChannel } from '../../utils/generalUtilities';
 import { getGuildFromDb, getUserPrefs } from '../../database/db';
 import {
   ONEHOUR,
-  buttonOptions,
-  readyOptions,
   READYTIME,
   FIVEMINUTES,
-  standardTime,
+  STANDARD_TIME,
+  STACK_BUTTON,
+  REDO_BUTTON,
+  STACK_BUTTON_IDS,
+  READY_BUTTONS_IDS,
 } from '../../utils/consts';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 
@@ -97,7 +98,7 @@ export const setUp = async (
     partyThread.members.add(p.player)
   );
   const filter = (i: CollectedMessageInteraction) =>
-    i.customId in buttonOptions && i.message.id === dotaMessage.id;
+    i.customId in STACK_BUTTON_IDS && i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
     filter,
     time: ONEHOUR * 1000,
@@ -107,7 +108,7 @@ export const setUp = async (
   collector.on('collect', async i => {
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
-      case buttonOptions.in:
+      case STACK_BUTTON_IDS.join:
         if (!confirmedPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(condiPlayers, i);
           const nickname = await getNickname(i, i.user);
@@ -124,17 +125,20 @@ export const setUp = async (
         }
         break;
 
-      case buttonOptions.condi:
+      case STACK_BUTTON_IDS.condi:
         if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(confirmedPlayers, i);
           await modalThing(i, condiPlayers, confirmedPlayers);
         }
         break;
 
-      case buttonOptions.dummy:
+      case STACK_BUTTON_IDS.dummy:
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
-          console.log('falsy modal interaction', modalInteraction);
+          console.log(
+            'falsy modal interaction, likely from opening and closing the modal without input',
+            modalInteraction
+          );
           break;
         }
         if (!modalInteraction.isFromMessage())
@@ -147,7 +151,7 @@ export const setUp = async (
         await modalInteraction.update({
           embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
         });
-        if (confirmedPlayers.length > 4) {
+        if (confirmedPlayers.length === 5) {
           console.log(
             "That's enough! Stopping the collector from within the dummy array stuff"
           );
@@ -157,7 +161,7 @@ export const setUp = async (
         }
         break;
 
-      case buttonOptions.out:
+      case STACK_BUTTON_IDS.leave:
         removeFromArray(condiPlayers, i);
         removeFromArray(confirmedPlayers, i);
         break;
@@ -178,9 +182,6 @@ export const setUp = async (
       });
       return;
     }
-    //Time for a ready check
-    // const memberArray = userToMember(confirmedPlayers, interaction);
-    // ljudGöraren.ljudGöraren(memberArray);
     console.log(
       'Finishing and starting the ready checker from the ELSE block of the component collector'
     );
@@ -213,7 +214,7 @@ const readyChecker = async (
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);
   const filter = (i: CollectedMessageInteraction) =>
-    i.message?.id === partyMessage.id && i.customId in readyOptions;
+    i.message?.id === partyMessage.id && i.customId in READY_BUTTONS_IDS;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
@@ -235,7 +236,7 @@ const readyChecker = async (
     const pickTime = getTimestamp(1);
     console.log(i.user.username + ' clicked ' + i.customId);
     switch (i.customId) {
-      case readyOptions.rdy:
+      case READY_BUTTONS_IDS.rdy:
         const player = readyArray.find(
           e => e.gamer.id === i.user.id && e.ready === false
         );
@@ -248,14 +249,14 @@ const readyChecker = async (
           collector.stop("That's enough");
         }
         break;
-      case readyOptions.stop:
+      case READY_BUTTONS_IDS.stop:
         collector.stop('Someone wants out!');
         break;
-      case readyOptions.sudo:
+      case READY_BUTTONS_IDS.sudo:
         forceReady(readyArray, pickTime - miliTime);
         collector.stop();
         break;
-      case readyOptions.ping:
+      case READY_BUTTONS_IDS.ping:
         await i.deferReply();
         pingMessage(readyArray, partyThread);
         await i.deleteReply();
@@ -280,9 +281,9 @@ const readyChecker = async (
     });
     if (!everyoneReady(readyArray)) {
       const time = getTimestamp(1000);
-      const redoButton = createButtonRow('Re-Check', 'redo');
+      const redoButton = createButtonRow(REDO_BUTTON);
       switch (collected.last()?.customId) {
-        case readyOptions.stop:
+        case READY_BUTTONS_IDS.stop:
           const stopper = collected.last()?.member?.toString() || 'Someone';
           await partyMessage.edit({
             content: stoppedMessageContent(stopper, time + FIVEMINUTES),
@@ -300,8 +301,9 @@ const readyChecker = async (
           return;
       }
     }
+
     console.log('this is the else block before the stack button is made');
-    const stackButton = createButtonRow('Stack it!', 'stack');
+    const stackButton = createButtonRow(STACK_BUTTON);
     await partyMessage.edit({
       content: finalMessageContent(collected),
       components: [stackButton],
@@ -316,7 +318,7 @@ async function redoCollector(
   partyThread: AnyThreadChannel
 ) {
   const filter = (i: CollectedInteraction) =>
-    i.message?.id === partyMessage.id && i.customId === 'redo';
+    i.message?.id === partyMessage.id && i.customId === REDO_BUTTON.btnId;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
@@ -326,7 +328,7 @@ async function redoCollector(
   collector.on('collect', async i => await handleIt(i, 'Again!'));
   collector.on('end', async collected => {
     switch (collected.last()?.customId) {
-      case 'redo':
+      case REDO_BUTTON.btnId:
         readyChecker(confirmedPlayers, partyMessage, partyThread);
         return;
       default:
@@ -356,7 +358,7 @@ async function stackIt(
   partyThread?: AnyThreadChannel
 ) {
   const filter = (i: CollectedInteraction) =>
-    i.message?.id === message.id && i.customId === 'stack';
+    i.message?.id === message.id && i.customId === STACK_BUTTON.btnId;
   const collector = message.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
@@ -401,7 +403,7 @@ async function stackIt(
       });
     }
     const shuffledPlayerArray = shuffle(playerArray);
-    await stackSetup(interaction, shuffledPlayerArray, standardTime, message);
+    await stackSetup(interaction, shuffledPlayerArray, STANDARD_TIME, message);
   });
 }
 

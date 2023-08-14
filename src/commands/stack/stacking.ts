@@ -1,5 +1,3 @@
-//Consistency in playerArray/updatedArray/objectArray
-
 import {
   ChatInputCommandInteraction,
   Message,

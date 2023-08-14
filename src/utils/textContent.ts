@@ -1,5 +1,5 @@
 import { Collection, ButtonInteraction } from 'discord.js';
-import { readyOptions } from './consts';
+import { READY_BUTTONS_IDS } from './consts';
 
 const CENTER_PICKING_SPACES = 11;
 export const PICKING_ORDER = `\`\`\`${' '.repeat(
@@ -58,11 +58,11 @@ export const readyCheckerStrings = {
     `${stopper} stopped the ready check. Option to Re-Check closes <t:${reCheckTime}:R>`,
   finalMessageContent: (collected: Collection<string, ButtonInteraction>) => {
     switch (collected.last()?.customId) {
-      case readyOptions.sudo:
+      case READY_BUTTONS_IDS.sudo:
         const readyLast = collected.last()?.member?.toString();
         return `${readyLast} used FORCED READY! You should be safe to stack, if not blame ${readyLast}`;
-      case readyOptions.rdy:
-      case readyOptions.ping: //in freak cases "ping" can be the last one
+      case READY_BUTTONS_IDS.rdy:
+      case READY_BUTTONS_IDS.ping: //in freak cases "ping" can be the last one
         return "Everyone's ready!";
     }
   },

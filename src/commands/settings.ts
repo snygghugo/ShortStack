@@ -33,19 +33,6 @@ export const data = new SlashCommandBuilder()
           .setRequired(true)
       )
   );
-// .addSubcommand(subcommand =>
-//   subcommand
-//     .setName('trashchannel')
-//     .setDescription('Set where ShortStack publishes trash')
-//     .addChannelOption((option: SlashCommandChannelOption) =>
-//       option
-//         .setName('trash')
-//         .setDescription(
-//           'Set where ShortStack publishes the less important trash stuff'
-//         )
-//         .setRequired(true)
-//     )
-// );
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   const stacks = interaction.options.getChannel('stacks');

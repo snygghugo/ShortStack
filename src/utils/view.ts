@@ -1,42 +1,24 @@
 import { botMessages } from './textContent';
-import {
-  ButtonStyle,
-  ButtonBuilder,
-  ActionRowBuilder,
-  TextInputBuilder,
-} from 'discord.js';
+import { ButtonBuilder, ActionRowBuilder, TextInputBuilder } from 'discord.js';
+import { BtnConfig } from './types';
 
 export const modalComponent = (reasonInput: TextInputBuilder) => {
   return new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput);
 };
 
-export const createButton = (
-  btnId: string,
-  btnText: string,
-  btnStyle: ButtonStyle = ButtonStyle.Secondary
-) =>
-  new ButtonBuilder().setCustomId(btnId).setLabel(btnText).setStyle(btnStyle);
-
-export const createButtonRow = (
-  btnText: string,
-  btnId: string,
-  btnStyle: ButtonStyle = ButtonStyle.Secondary
-) => {
+export const createButton = (btnConfig: BtnConfig) => {
+  const { btnText, btnId, btnStyle } = btnConfig;
+  return new ButtonBuilder()
+    .setCustomId(btnId)
+    .setLabel(btnText)
+    .setStyle(btnStyle);
+};
+export const createButtonRow = (btnConfig: BtnConfig) => {
   const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    createButton(btnId, btnText, btnStyle)
+    createButton(btnConfig)
   );
   return button;
 };
-
-// export const linkButton = (thread: ThreadChannel, label: string) => {
-//   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-//     new ButtonBuilder()
-//       .setURL(`https://discord.com/channels/${thread.guild.id}/${thread.id}`)
-//       .setLabel(label)
-//       .setStyle(ButtonStyle.Link)
-//   );
-//   return buttonRow;
-// };
 
 export const prefEmbedMaker = (chosenRoles?: string[]) => {
   let fieldTitle = botMessages.rolePrefFieldTitle;

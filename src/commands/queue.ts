@@ -4,13 +4,11 @@ import {
   CollectedInteraction,
   Message,
   ComponentType,
-  ButtonStyle,
-  Embed,
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
 import { getChannel } from '../utils/generalUtilities';
-import { FIVEMINUTES } from '../utils/consts';
+import { FIVEMINUTES, QUEUE_BUTTON } from '../utils/consts';
 import { createButtonRow } from '../utils/view';
 import { getTimestamp } from './lfs/utilities';
 
@@ -175,11 +173,8 @@ const invokeMessageCollector = async (
     id: queuer,
     hasHeeded: false,
   }));
-  const button = createButtonRow(
-    'AND THE QUEUE SHALL ANSWER',
-    'heedCall',
-    ButtonStyle.Primary
-  );
+
+  const button = createButtonRow(QUEUE_BUTTON);
   const time = getTimestamp(1000);
   message.edit({
     content: `The Stack calls for aid! \n${queue.join(
@@ -190,7 +185,7 @@ const invokeMessageCollector = async (
   });
 
   const filter = (i: CollectedInteraction) =>
-    i.customId === 'heedCall' && queue.includes(`<@${i.user.id}>`);
+    i.customId === QUEUE_BUTTON.btnId && queue.includes(`<@${i.user.id}>`);
   const collector = message.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
