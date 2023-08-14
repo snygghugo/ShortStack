@@ -10,7 +10,7 @@ export const createDummy = (name: string): Dummy => ({
   id: name,
   username: name,
   user: { username: name },
-  displayAvatarURL: () => 'https://laggan.online/foppa.gif',
+  displayAvatarURL: () => 'https://laggan.online/abb.png',
   isDummy: true,
 });
 
