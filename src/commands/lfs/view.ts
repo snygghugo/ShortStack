@@ -4,43 +4,36 @@ import {
   ConditionalPlayer,
   PlayerToReady,
 } from '../../utils/types';
-import {
-  readyColours,
-  rdyButtonsCustomIds,
-  stackButtonCustomIds,
-} from '../../utils/consts';
+import { READY_COLOURS } from '../../utils/consts';
 import { createButton } from '../../utils/view';
 import {
   roleCallEmbedStrings,
   readyEmbedStrings,
-  inOutButLabels,
-  rdyButtonsLabels,
   BLANK,
 } from '../../utils/textContent';
 import { getNameWithPing } from '../../utils/generalUtilities';
+import { READY_BUTTONS, STACK_BUTTONS } from '../../utils/buttons/buttonConsts';
 
 export const inOutBut = () => {
-  const { join, leave, dummy, condi } = stackButtonCustomIds;
-  const { joinLabel, leaveLabel, dummyLabel, condiLabel } = inOutButLabels;
+  const { join, leave, dummy, condi } = STACK_BUTTONS;
   const row1 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(createButton(join, joinLabel, ButtonStyle.Success))
-    .addComponents(createButton(leave, leaveLabel, ButtonStyle.Danger));
+    .addComponents(createButton(join))
+    .addComponents(createButton(leave));
 
   const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(createButton(dummy, dummyLabel, ButtonStyle.Primary))
-    .addComponents(createButton(condi, condiLabel));
+    .addComponents(createButton(dummy))
+    .addComponents(createButton(condi));
   return [row1, row2];
 };
 
 export const rdyButtons = () => {
-  const { rdy, stop, sudo, ping } = rdyButtonsCustomIds;
-  const { rdyLabel, stopLabel, sudoLabel, pingLabel } = rdyButtonsLabels;
+  const { rdy, stop, sudo, ping } = READY_BUTTONS;
   const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(createButton(rdy, rdyLabel, ButtonStyle.Success))
-    .addComponents(createButton(stop, stopLabel, ButtonStyle.Danger));
+    .addComponents(createButton(rdy))
+    .addComponents(createButton(stop));
   const row2 = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(createButton(sudo, sudoLabel, ButtonStyle.Primary))
-    .addComponents(createButton(ping, pingLabel));
+    .addComponents(createButton(sudo))
+    .addComponents(createButton(ping));
   return [buttonRow, row2];
 };
 
@@ -76,7 +69,7 @@ export const roleCallEmbed = (
   }
 
   const embed = {
-    color: readyColours[confirmedPlayers.length as keyof typeof readyColours],
+    color: READY_COLOURS[confirmedPlayers.length as keyof typeof READY_COLOURS],
     fields: embedFields,
   };
   return embed;
@@ -86,7 +79,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
   const { readyHeading } = readyEmbedStrings;
   const readyAmount = readyArray.filter(({ ready }) => ready).length;
   const embed = {
-    color: readyColours[readyAmount as keyof typeof readyColours],
+    color: READY_COLOURS[readyAmount as keyof typeof READY_COLOURS],
     fields: [
       {
         name: readyHeading,

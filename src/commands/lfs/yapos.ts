@@ -36,12 +36,14 @@ import {
   READYTIME,
   FIVEMINUTES,
   STANDARD_TIME,
-  STACK_BUTTON,
-  REDO_BUTTON,
-  STACK_BUTTON_IDS,
-  READY_BUTTONS_IDS,
 } from '../../utils/consts';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
+import {
+  READY_BUTTONS,
+  REDO_BUTTON,
+  STACK_BUTTONS,
+  STACK_IT_BUTTON,
+} from '../../utils/buttons/buttonConsts';
 
 export const createConfirmedPlayers = async (
   interaction: ChatInputCommandInteraction
@@ -98,7 +100,7 @@ export const setUp = async (
     partyThread.members.add(p.player)
   );
   const filter = (i: CollectedMessageInteraction) =>
-    i.customId in STACK_BUTTON_IDS && i.message.id === dotaMessage.id;
+    i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
     filter,
     time: ONEHOUR * 1000,
@@ -108,7 +110,7 @@ export const setUp = async (
   collector.on('collect', async i => {
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
-      case STACK_BUTTON_IDS.join:
+      case STACK_BUTTONS.join.btnId:
         if (!confirmedPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(condiPlayers, i);
           const nickname = await getNickname(i, i.user);
@@ -125,14 +127,14 @@ export const setUp = async (
         }
         break;
 
-      case STACK_BUTTON_IDS.condi:
+      case STACK_BUTTONS.condi.btnId:
         if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
           removeFromArray(confirmedPlayers, i);
           await modalThing(i, condiPlayers, confirmedPlayers);
         }
         break;
 
-      case STACK_BUTTON_IDS.dummy:
+      case STACK_BUTTONS.dummy.btnId:
         const modalInteraction = await getDummyNameModal(i);
         if (!modalInteraction) {
           console.log(
@@ -161,7 +163,7 @@ export const setUp = async (
         }
         break;
 
-      case STACK_BUTTON_IDS.leave:
+      case STACK_BUTTONS.leave.btnId:
         removeFromArray(condiPlayers, i);
         removeFromArray(confirmedPlayers, i);
         break;
@@ -214,7 +216,7 @@ const readyChecker = async (
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);
   const filter = (i: CollectedMessageInteraction) =>
-    i.message?.id === partyMessage.id && i.customId in READY_BUTTONS_IDS;
+    i.message?.id === partyMessage.id && i.customId in READY_BUTTONS;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
     time: READYTIME * 1000,
@@ -236,7 +238,7 @@ const readyChecker = async (
     const pickTime = getTimestamp(1);
     console.log(i.user.username + ' clicked ' + i.customId);
     switch (i.customId) {
-      case READY_BUTTONS_IDS.rdy:
+      case READY_BUTTONS.rdy.btnId:
         const player = readyArray.find(
           e => e.gamer.id === i.user.id && e.ready === false
         );
@@ -249,14 +251,14 @@ const readyChecker = async (
           collector.stop("That's enough");
         }
         break;
-      case READY_BUTTONS_IDS.stop:
+      case READY_BUTTONS.stop.btnId:
         collector.stop('Someone wants out!');
         break;
-      case READY_BUTTONS_IDS.sudo:
+      case READY_BUTTONS.sudo.btnId:
         forceReady(readyArray, pickTime - miliTime);
         collector.stop();
         break;
-      case READY_BUTTONS_IDS.ping:
+      case READY_BUTTONS.ping.btnId:
         await i.deferReply();
         pingMessage(readyArray, partyThread);
         await i.deleteReply();
@@ -283,7 +285,7 @@ const readyChecker = async (
       const time = getTimestamp(1000);
       const redoButton = createButtonRow(REDO_BUTTON);
       switch (collected.last()?.customId) {
-        case READY_BUTTONS_IDS.stop:
+        case READY_BUTTONS.stop.btnId:
           const stopper = collected.last()?.member?.toString() || 'Someone';
           await partyMessage.edit({
             content: stoppedMessageContent(stopper, time + FIVEMINUTES),
@@ -303,7 +305,7 @@ const readyChecker = async (
     }
 
     console.log('this is the else block before the stack button is made');
-    const stackButton = createButtonRow(STACK_BUTTON);
+    const stackButton = createButtonRow(STACK_IT_BUTTON);
     await partyMessage.edit({
       content: finalMessageContent(collected),
       components: [stackButton],
@@ -358,7 +360,7 @@ async function stackIt(
   partyThread?: AnyThreadChannel
 ) {
   const filter = (i: CollectedInteraction) =>
-    i.message?.id === message.id && i.customId === STACK_BUTTON.btnId;
+    i.message?.id === message.id && i.customId === STACK_IT_BUTTON.btnId;
   const collector = message.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,

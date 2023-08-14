@@ -8,9 +8,10 @@ import {
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
 import { getChannel } from '../utils/generalUtilities';
-import { FIVEMINUTES, QUEUE_BUTTON } from '../utils/consts';
+import { FIVEMINUTES } from '../utils/consts';
 import { createButtonRow } from '../utils/view';
 import { getTimestamp } from './lfs/utilities';
+import { QUEUE_BUTTON } from '../utils/buttons/buttonConsts';
 
 const QUEUE_OPTIONS = {
   join: 'join',

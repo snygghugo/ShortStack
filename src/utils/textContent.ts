@@ -1,5 +1,5 @@
-import { Collection, ButtonInteraction } from 'discord.js';
-import { READY_BUTTONS_IDS } from './consts';
+import { Collection, ButtonInteraction, ButtonStyle } from 'discord.js';
+import { READY_BUTTONS } from './buttons/buttonConsts';
 
 const CENTER_PICKING_SPACES = 11;
 export const PICKING_ORDER = `\`\`\`${' '.repeat(
@@ -25,20 +25,6 @@ export const readyEmbedStrings = {
   readyHeading: '**R E A D Y  C H E C K**',
 };
 
-export const inOutButLabels = {
-  joinLabel: "I'M IN",
-  leaveLabel: "I'M OUT",
-  dummyLabel: 'Dummy',
-  condiLabel: "I'm in, but (...)",
-};
-
-export const rdyButtonsLabels = {
-  rdyLabel: '✅',
-  stopLabel: 'Cancel',
-  sudoLabel: 'FORCE READY',
-  pingLabel: 'Ping!',
-};
-
 export const lfsSetUpStrings = {
   setUpMessageContent: (roleCall: string, time: number, queue: string[]) => {
     let messageContent = `Calling all ${roleCall}! Closes <t:${time}:R>`;
@@ -58,11 +44,11 @@ export const readyCheckerStrings = {
     `${stopper} stopped the ready check. Option to Re-Check closes <t:${reCheckTime}:R>`,
   finalMessageContent: (collected: Collection<string, ButtonInteraction>) => {
     switch (collected.last()?.customId) {
-      case READY_BUTTONS_IDS.sudo:
+      case READY_BUTTONS.sudo.btnId:
         const readyLast = collected.last()?.member?.toString();
         return `${readyLast} used FORCED READY! You should be safe to stack, if not blame ${readyLast}`;
-      case READY_BUTTONS_IDS.rdy:
-      case READY_BUTTONS_IDS.ping: //in freak cases "ping" can be the last one
+      case READY_BUTTONS.rdy.btnId:
+      case READY_BUTTONS.ping.btnId: //in freak cases "ping" can be the last one
         return "Everyone's ready!";
     }
   },
