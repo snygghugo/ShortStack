@@ -128,8 +128,33 @@ export const setUp = async (
 
       case STACK_BUTTONS.condi.btnId:
         if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
+          const modalInteraction = await modalThing(
+            i,
+            condiPlayers,
+            confirmedPlayers
+          );
+          if (!modalInteraction) {
+            console.log(
+              'falsy modal interaction, likely from opening and cancelling the modal'
+            );
+            break;
+          }
+          if (!modalInteraction.isFromMessage())
+            throw new Error("Somehow this modal isn't from a message");
+          const time = getTimestamp(1000);
+          const condition = `${modalInteraction.fields.getTextInputValue(
+            'reason'
+          )} *(written <t:${time}:R>)*`;
+          const nickname = await getNickname(interaction, interaction.user);
+          condiPlayers.push({
+            player: interaction.user,
+            nickname,
+            condition: condition,
+          });
           removeFromArray(confirmedPlayers, i);
-          await modalThing(i, condiPlayers, confirmedPlayers);
+          await modalInteraction.update({
+            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+          });
         }
         break;
 
@@ -458,23 +483,5 @@ async function modalThing(
       console.error(error);
       return null;
     });
-  if (!submitted) {
-    return;
-  }
-  const time = getTimestamp(1000);
-  const condition = `${submitted.fields.getTextInputValue(
-    'reason'
-  )} *(written <t:${time}:R>)*`;
-  const nickname = await getNickname(interaction, interaction.user);
-  condiPlayers.push({
-    player: interaction.user,
-    nickname,
-    condition: condition,
-  });
-  if (!submitted.isFromMessage())
-    throw new Error("Somehow this modal isn't from a message");
-
-  await submitted.update({
-    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
-  });
+  return submitted;
 }
