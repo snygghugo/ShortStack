@@ -34,28 +34,21 @@ The command /preference lets the bot know in what order you prefer the roles and
 
 Let’s talk about the /stack command. The /stack function gets triggered automatically when the ready checker part of the bot finishes, but if you’re already 5 playing you can just short-cut to the goodies and do /stack. This would be a meagre paragraph if that’s all it did, but fortunately over 10 000 uses there’s more. Once the /stack portion, wether by /lfs or by /stack finishes you’re given a copy code at the top of the embed. Copy the code and paste it into your chat. Bam, the same party composition populates the command and you’re ready to random your roles again. It’s so fast. 
 
-”Well I usually just ping the @dota role and wish for the best :)” ok listen Short Stack has been used over 10 000 times, of course she can ping your Dota roles. The only thing she can’t do is toast bread. Use /settings role and you can set whatever role you associate with congregating the conscripts and she will ping for you. 
+”Well I usually just ping the @dota role and wish for the best :)” ok listen Short Stack has been used over 10 000 times, of course she can ping your Dota roles. The only thing she can’t do is toast bread. Use /settings role and you can set whatever role you associate with congregating the conscripts and she will ping for you. Additionally you can use /settings stackschannel to specify what channel she will post her stacks in, no matter where you type the command.
 
-Of course there are more things, but they’re boring. If you have a dedicated Dota LFG channel she can output there exclusively through /settings stacks, if you have a dedicated bot trash channel she can output to that as well through /settings trash. They make things a little nicer. 
+### Queue system
+A system where people can queue up (using /queue join) to play after the existing stack has finished their game and one player in the stack wants to stop playing. The queue can then be invoked by the current stack by using /queue invoke, and specifying how many slots are open.
+Preview:
+
+![image](https://github.com/snygghugo/ShortStack/assets/4653578/2a8fcdd3-9218-459c-a248-2dcd20d4c320) ![image](https://github.com/snygghugo/ShortStack/assets/4653578/65251a2f-2b98-4d5b-8f07-ff227bb52c5a)
+
+If a stack "implodes", i.e. the party dies completely, whenever a new /lfs is created, the people in the queue will be pinged. 
 
 That’s about it. Essentially you’ll never have to speak with your friends again until you’re in-game losing FB to an Ursa. 
 
 ## Future improvements
-Either a queue system or a sound system, input is appreciated!
 
-### Queue system
-A system where people can queue up to play after the existing stack has finished their game and one player in the stack wants to stop playing. This has been implmeneted in our test discord and is appreciated. Preview:
-
-![image](https://github.com/snygghugo/ShortStack/assets/4653578/2a8fcdd3-9218-459c-a248-2dcd20d4c320) ![image](https://github.com/snygghugo/ShortStack/assets/4653578/65251a2f-2b98-4d5b-8f07-ff227bb52c5a)
-
-If a stack "implodes", i.e. the party dies completely, whenever a new /LFS is created, the people in the queue for a, now nonexistant, stack, will be pinged. The queue will also be cleared whenever a new /LFS is created. 
-
-More features in development.
-
-### Sound system
-A voice user (bot) that joins the voice channel that the user who did /lfs and plays sound when:
-* The /lfs filled with 5 people
-* The stack has begun, i.e. all 5 people clicked ready
-* More??
+### Sound alert system
+Considering adding a function wherein the bot would join a voice channel populated with users in the /lfs when the /lfs reaches 5 players to alert them that a stack can be formed. Ideally through the Discord soundboard feature, it's under investigation. 
 
 
