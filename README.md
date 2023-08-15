@@ -40,4 +40,22 @@ Of course there are more things, but they’re boring. If you have a dedicated D
 
 That’s about it. Essentially you’ll never have to speak with your friends again until you’re in-game losing FB to an Ursa. 
 
-Upcoming: Either the queue system or the sound system, input is appreciated. 
+## Future improvements
+Either a queue system or a sound system, input is appreciated!
+
+### Queue system
+A system where people can queue up to play after the existing stack has finished their game and one player in the stack wants to stop playing. This has been implmeneted in our test discord and is appreciated. Preview:
+
+![image](https://github.com/snygghugo/ShortStack/assets/4653578/2a8fcdd3-9218-459c-a248-2dcd20d4c320) ![image](https://github.com/snygghugo/ShortStack/assets/4653578/65251a2f-2b98-4d5b-8f07-ff227bb52c5a)
+
+If a stack "implodes", i.e. the party dies completely, whenever a new /LFS is created, the people in the queue for a, now nonexistant, stack, will be pinged. The queue will also be cleared whenever a new /LFS is created. 
+
+More features in development.
+
+### Sound system
+A voice user (bot) that joins the voice channel that the user who did /lfs and plays sound when:
+* The /lfs filled with 5 people
+* The stack has begun, i.e. all 5 people clicked ready
+* More??
+
+
