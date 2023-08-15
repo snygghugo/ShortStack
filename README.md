@@ -3,7 +3,9 @@
 # ***SHORT STACK*** 
 ***is a Dota 2 party composition bot to get your gang in the game quicker.***
 
-What does she do? Everything. If you hate reading just [invite her over](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565008448&scope=bot) and see for yourself.
+What does she do? Everything. If you hate reading just [invite her over](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565008448&scope=bot), or see the handy gif below.
+
+<img src="shortgif.gif?raw=true" width="800px">
 
 In short she allows you to create an LFG-like message in your server to announce that you wanna get a 5-stack going, collect whatever goons show up to your Dota call, and uses The Only Fair Principle In The Universe - randomness - to set roles. No more 
 
