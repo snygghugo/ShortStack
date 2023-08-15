@@ -80,9 +80,17 @@ export const setUp = async (
   const { setUpMessageContent: setUpMessageContent, outOfTime } =
     lfsSetUpStrings;
   const time = getTimestamp(1000);
-
+  let timeLimit = ONEHOUR;
+  const optionalTime = interaction.options.getInteger('timelimit');
+  if (optionalTime) {
+    timeLimit = optionalTime * 60;
+  }
   const setUpMessage = {
-    content: setUpMessageContent(roleCall, time + ONEHOUR, guildSettings.queue), //this will later be messageContent
+    content: setUpMessageContent(
+      roleCall,
+      time + timeLimit,
+      guildSettings.queue
+    ), //this will later be messageContent
     embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
@@ -102,7 +110,7 @@ export const setUp = async (
     i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
     filter,
-    time: ONEHOUR * 1000,
+    time: timeLimit * 1000,
     componentType: ComponentType.Button,
   });
   console.log('setUp: on collect');
@@ -351,17 +359,19 @@ async function redoCollector(
     await i.update('Again!');
   });
   collector.on('end', async collected => {
-    switch (collected.last()?.customId) {
-      case REDO_BUTTON.btnId:
-        readyChecker(confirmedPlayers, partyMessage, partyThread);
-        return;
-      default:
-        await partyMessage.edit({
-          content: 'Ready check failed.',
-          components: [],
-        });
-        return;
+    if (collector.endReason === 'time') {
+      console.log('endreason was time');
+      await partyMessage.edit({
+        content: 'Ready check failed.',
+        components: [],
+      });
+      return;
     }
+    console.log(
+      'endreason was something other than time, next code should fire off without issue'
+    );
+    readyChecker(confirmedPlayers, partyMessage, partyThread);
+    return;
   });
 }
 const pThreadCreator = async (

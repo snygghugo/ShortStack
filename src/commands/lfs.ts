@@ -17,7 +17,15 @@ export const data = new SlashCommandBuilder()
   .addUserOption(addUser)
   .addUserOption(addUser)
   .addUserOption(addUser)
-  .addUserOption(addUser);
+  .addUserOption(addUser)
+  .addIntegerOption(option =>
+    option
+      .setName('timelimit')
+      .setDescription('How long can you wait for a Stack?')
+      .setRequired(false)
+      .setMinValue(5)
+      .setMaxValue(60)
+  );
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   const confirmedPlayers = await createConfirmedPlayers(interaction);
@@ -25,7 +33,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     interaction.reply('Please provide unique players!\nLove, **ShortStack!**');
     return;
   }
-
   interaction.deferReply();
   interaction.deleteReply();
   await setUp(interaction, confirmedPlayers);
