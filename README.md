@@ -36,6 +36,8 @@ Let’s talk about the /stack command. The /stack function gets triggered automa
 
 ”Well I usually just ping the @dota role and wish for the best :)” ok listen Short Stack has been used over 10 000 times, of course she can ping your Dota roles. The only thing she can’t do is toast bread. Use /settings role and you can set whatever role you associate with congregating the conscripts and she will ping for you. Additionally you can use /settings stackschannel to specify what channel she will post her stacks in, no matter where you type the command.
 
+During the stacking, **anyone can press a button and thus select a role for the current player**. This is not a bug and something that has been discussed a lot on our Discord server. The use case this addresses is that people are in the voice channel but maybe not at the computer. Or, even more likely, they are at the computer but alt tabbed into a super important fight scene in another single player game. Then the busy player can ask "Can someone pick mid (2) for me?" and another player can do just so.
+
 ## Queue system
 A system where people can queue up (using /queue join) to play after the existing stack has finished their game and one player in the stack wants to stop playing. The queue can then be invoked by the current stack by using /queue invoke, and specifying how many slots are open.
 Preview:
