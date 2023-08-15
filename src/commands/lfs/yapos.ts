@@ -106,6 +106,7 @@ export const setUp = async (
   confirmedPlayersWithoutDummies.forEach(p =>
     partyThread.members.add(p.player)
   );
+
   const filter = (i: CollectedMessageInteraction) =>
     i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
@@ -113,6 +114,10 @@ export const setUp = async (
     time: timeLimit * 1000,
     componentType: ComponentType.Button,
   });
+  if (confirmedPlayers.length === 5) {
+    console.log('Confirmed players are already five, skipping ahead');
+    collector.stop();
+  }
   console.log('setUp: on collect');
   collector.on('collect', async i => {
     console.log(`${i.user.username} clicked ${i.customId}`);
