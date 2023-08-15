@@ -3,7 +3,7 @@
 # ***SHORT STACK*** 
 ***is a Dota 2 party composition bot to get your gang in the game quicker.***
 
-What does she do? Everything. If you hate reading just [invite her over](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565008448&scope=bot), or see the handy gif below.
+What does she do? Everything. If you hate reading just [invite her over](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565057600&scope=bot%20applications.commands), or see the handy gif below.
 <img src="shortgif.gif?raw=true" alt="ShortStack in action!" width="800px">
 
 [Skip to setup](#how-to-setup-on-your-discord-server)
@@ -50,7 +50,7 @@ If a stack "implodes", i.e. the party dies completely, whenever a new /lfs is cr
 That’s about it. Essentially you’ll never have to speak with your friends again until you’re in-game losing FB to an Ursa. 
 
 ## How to setup on your Discord server
-1. [Click this link to invite her](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565008448&scope=bot).
+1. [Click this link to invite her](https://discord.com/api/oauth2/authorize?client_id=1109079876713066518&permissions=328565057600&scope=bot%20applications.commands).
 2. Select which server 👇
    
    ![image](https://github.com/snygghugo/ShortStack/assets/4653578/407b86ce-d292-49bc-9e56-3b2d8528a809)
