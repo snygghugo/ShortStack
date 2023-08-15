@@ -22,7 +22,7 @@ These quotes are of course real, and we have all of course heard them, and they 
 (read as ”Looking for stack”): In my server this command is called ”yapos”, after our most big-handed friend somehow misspelled the word ”Dota?” Into ”yapos_”. The mystery remains to this day. With this command you sort of open shop to let the world know you’re ready to get pubstomped by a rank 86 immortal Meepo smurf and their low Archon Rubick friend. If you’re already a bunch of bozos willing to play, you can optionally add said bozos and they will show up, it works like it should it’s been tested 10 000 times. 
 
 Once the stack reaches 5 it goes into a ready-checker mode, which has all the features you need like a ”Ping” button that makes sure whoever is slacking gets a million red ones on their Discord. When all players are ready you’re ready to stack!
-Stacking is the most fun part because now every player is randomly given their turn to select their role. Of course you can be boring and select the role you want, or even more boring if you play it safe and pick ”fill” (used by experts to postpone their turn in order for a better chance with their preferred laning partner), or a real hero and pick the interrobang random option! You can get any role when you random! You can even get fill! And if you get fill you can of course random again! That’s right this bad girl does gacha. It’s been tested over 10 000 times. 
+Stacking is the most fun part because now every player is randomly given their turn to select their role. Of course you can be boring and select the role you want, or even more boring if you play it safe and pick ”fill” (used by experts to postpone their turn in order for a better chance with their preferred laning partner), or a real hero and pick the interrobang (⁉️) random option! You can get any role when you random! You can even get fill! And if you get fill you can of course random again! That’s right this bad girl does gacha. It’s been tested over 10 000 times. 
 
 ”Well what about my friend that randomly leaves their computer?” I just told you it’s been tested over 10 000 times! When it’s your turn to pick you have 60 seconds, otherwise you get assigned ”fill” and lose your priority. Well, that is, unless you set your preferences of course.
 
@@ -36,7 +36,7 @@ Let’s talk about the /stack command. The /stack function gets triggered automa
 
 ”Well I usually just ping the @dota role and wish for the best :)” ok listen Short Stack has been used over 10 000 times, of course she can ping your Dota roles. The only thing she can’t do is toast bread. Use /settings role and you can set whatever role you associate with congregating the conscripts and she will ping for you. Additionally you can use /settings stackschannel to specify what channel she will post her stacks in, no matter where you type the command.
 
-### Queue system
+## Queue system
 A system where people can queue up (using /queue join) to play after the existing stack has finished their game and one player in the stack wants to stop playing. The queue can then be invoked by the current stack by using /queue invoke, and specifying how many slots are open.
 Preview:
 
@@ -45,6 +45,20 @@ Preview:
 If a stack "implodes", i.e. the party dies completely, whenever a new /lfs is created, the people in the queue will be pinged. 
 
 That’s about it. Essentially you’ll never have to speak with your friends again until you’re in-game losing FB to an Ursa. 
+
+## How to setup on your Discord server
+1. Click this link: https://discord.com/oauth2/authorize?client_id=1109079876713066518&permissions=328565008448&scope=bot
+2. Select which server 👇
+3. ![image](https://github.com/snygghugo/ShortStack/assets/4653578/407b86ce-d292-49bc-9e56-3b2d8528a809)
+4. Grant all the requested permissions for it to work properly. 
+5. ![image](https://github.com/snygghugo/ShortStack/assets/4653578/f1bcdd77-2391-4383-a4f2-4ccd23ad20d7)
+6. (Optional) Select a server role that ShoSta should ping when /lfg is called 👇
+7. ![image](https://github.com/snygghugo/ShortStack/assets/4653578/0f87ba49-dc07-4b44-9653-29665974772e)
+8. (Optional, per player) Every player can select their preferred role with `/preference`. **This only affects when the picking timer of 60s runs out** 👇
+9. ![image](https://github.com/snygghugo/ShortStack/assets/4653578/93eaf768-333a-4e3b-97d2-4df97a83ed4e) 
+
+
+
 
 ## Future improvements
 
