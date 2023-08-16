@@ -4,7 +4,7 @@ export const STACK_BUTTONS = {
   join: { btnText: "I'M IN", btnId: 'join', btnStyle: ButtonStyle.Success },
   leave: { btnText: "I'M OUT", btnId: 'leave', btnStyle: ButtonStyle.Danger },
   dummy: {
-    btnText: 'Add absentee(...)',
+    btnText: 'Add absentee (...)',
     btnId: 'dummy',
     btnStyle: ButtonStyle.Primary,
   },

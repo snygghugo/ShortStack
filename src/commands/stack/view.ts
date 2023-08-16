@@ -10,8 +10,8 @@ const artTime = async (
 ) => {
   const positionsMap = new Map([
     ['pos1', { x: 235 - 10, y: 248 - 20 }],
-    ['pos2', { x: 125, y: 125 }],
-    ['pos3', { x: 10 + 18, y: 25 + 35 }],
+    ['pos2', { x: 125 - 10, y: 125 + 8 }],
+    ['pos3', { x: 10 + 15, y: 25 + 43 }],
     ['pos4', { x: 100 - 5, y: 40 + 10 }],
     ['pos5', { x: 185 - 30, y: 248 - 50 }],
   ]);
@@ -61,7 +61,7 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
     (a, b) => parseInt(a.position.slice(3)) - parseInt(b.position.slice(3))
   );
   const finalArray = sortedArray.map(player => {
-    return `${player.user.username} ${player.position.slice(3)}${'⁉️'.repeat(
+    return `${player.nickname} ${player.position.slice(3)}${'⁉️'.repeat(
       player.randomed
     )}`;
   });

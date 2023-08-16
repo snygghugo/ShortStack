@@ -379,8 +379,9 @@ const pThreadCreator = async (
   interaction: ChatInputCommandInteraction,
   dotaMessage: Message
 ) => {
+  const creatorName = await getNickname(interaction, interaction.user);
   const partyThread = await dotaMessage.startThread({
-    name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
+    name: `🍹${creatorName}'s Pre-Game Lounge 🍹`,
     autoArchiveDuration: 60,
     reason: 'Time for stack!',
   });
