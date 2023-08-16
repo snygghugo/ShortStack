@@ -3,7 +3,11 @@ import { ButtonStyle } from 'discord.js';
 export const STACK_BUTTONS = {
   join: { btnText: "I'M IN", btnId: 'join', btnStyle: ButtonStyle.Success },
   leave: { btnText: "I'M OUT", btnId: 'leave', btnStyle: ButtonStyle.Danger },
-  dummy: { btnText: 'Dummy', btnId: 'dummy', btnStyle: ButtonStyle.Primary },
+  dummy: {
+    btnText: 'Add absentee(...)',
+    btnId: 'dummy',
+    btnStyle: ButtonStyle.Primary,
+  },
   condi: {
     btnText: "I'm in, but (...)",
     btnId: 'condi',

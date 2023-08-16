@@ -54,3 +54,8 @@ export type BtnConfig = {
   btnId: string;
   btnStyle: ButtonStyle;
 };
+
+export type Invokee = {
+  id: string;
+  hasHeeded: boolean;
+};

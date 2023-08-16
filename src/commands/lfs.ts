@@ -2,7 +2,7 @@ import {
   ChatInputCommandInteraction,
   SlashCommandUserOption,
 } from 'discord.js';
-import { setUp, createConfirmedPlayers } from './lfs/yapos';
+import { setUp, createConfirmedPlayers } from './lfs/lobby';
 import { SlashCommandBuilder } from 'discord.js';
 let playerNo = 2;
 const addUser = (option: SlashCommandUserOption) =>

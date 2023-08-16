@@ -13,3 +13,9 @@ export const ONEHOUR = 60 * 60;
 export const FIVEMINUTES = 5 * 60;
 export const READYTIME = 2 * 60;
 export const STANDARD_TIME = 60;
+
+export const QUEUE_OPTIONS = {
+  join: 'join',
+  leave: 'leave',
+  invoke: 'invoke',
+};
