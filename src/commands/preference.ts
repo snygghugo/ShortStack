@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { prefEmbedMaker } from '../utils/view';
 import { reactionCollector } from './preference/reactionsCollector';
 import { updateUserPrefs } from '../database/db';
+import { getTimestamp } from './lfs/utilities';
 
 export const data = new SlashCommandBuilder()
   .setName('preference')
@@ -13,5 +14,14 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     fetchReply: true,
   });
   const chosenRoles = await reactionCollector(createdMessage, interactionUser);
-  updateUserPrefs(interaction.user.id, chosenRoles);
+  await updateUserPrefs(interaction.user.id, chosenRoles);
+  const time = getTimestamp(1000);
+  await createdMessage.edit({
+    content: `All done! This message will self-destruct <t:${time + 60}:R>`,
+  });
+  setTimeout(() => {
+    createdMessage.delete();
+  }, 60 * 1000);
 };
+
+//MAKE IT SELF-EXPLODE
