@@ -141,7 +141,7 @@ export const setUp = async (
 
       case STACK_BUTTONS.condi.btnId:
         if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
-          const modalInteraction = await modalThing(i);
+          const modalInteraction = await condiModal(i);
           if (!modalInteraction) {
             console.log(
               'falsy modal interaction, likely from opening and cancelling the modal'
@@ -448,8 +448,8 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
   const avatarInput = new TextInputBuilder()
     .setCustomId('dummyName')
-    .setLabel('Who are you adding?')
-    .setPlaceholder('This spot is meant to represent...')
+    .setLabel('Who are you reserving a spot for?')
+    .setPlaceholder('This spot is for...')
     .setMaxLength(14)
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
@@ -468,7 +468,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   return submitted;
 };
 
-async function modalThing(interaction: ButtonInteraction) {
+async function condiModal(interaction: ButtonInteraction) {
   //this is  a little busy
   const uniqueId = Date.now().toString();
   const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
