@@ -5,7 +5,6 @@ import {
   SlashCommandRoleOption,
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
-import { SettingsOptions } from '../utils/types';
 import { getGuildFromDb } from '../database/db';
 
 export const data = new SlashCommandBuilder()
@@ -36,15 +35,19 @@ export const data = new SlashCommandBuilder()
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   const stacks = interaction.options.getChannel('stacks');
-  const trash = interaction.options.getChannel('trash');
   const role = interaction.options.getRole('ping');
-  if (
-    (stacks && stacks?.type !== ChannelType.GuildText) ||
-    (trash && trash?.type !== ChannelType.GuildText)
-  ) {
-    return interaction.reply(
-      'Please choose a text channel, it would be weird if I joined voice and dictated my output...'
-    );
+  if (role && role.id === interaction.guildId) {
+    return interaction.reply({
+      content: "Don't make me ping everyone please!",
+      ephemeral: true,
+    });
+  }
+  if (stacks && stacks?.type !== ChannelType.GuildText) {
+    return interaction.reply({
+      content:
+        'Please choose a text channel, it would be weird if I joined voice and dictated my output...',
+      ephemeral: true,
+    });
   }
   if (!interaction.guildId) throw new Error('GuildId is falsy');
   let reply = 'Nothing was changed!';
@@ -59,6 +62,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     await guildSettings.save();
     reply = `Roger! In the future I will ping ${role} when I set up a stack.`;
   }
-  interaction.reply(reply);
+  interaction.reply({ content: reply, ephemeral: false });
   return;
 };
