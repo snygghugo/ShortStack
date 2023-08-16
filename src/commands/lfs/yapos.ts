@@ -141,11 +141,7 @@ export const setUp = async (
 
       case STACK_BUTTONS.condi.btnId:
         if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
-          const modalInteraction = await modalThing(
-            i,
-            condiPlayers,
-            confirmedPlayers
-          );
+          const modalInteraction = await modalThing(i);
           if (!modalInteraction) {
             console.log(
               'falsy modal interaction, likely from opening and cancelling the modal'
@@ -160,7 +156,7 @@ export const setUp = async (
           )} *(written <t:${time}:R>)*`;
           const nickname = await getNickname(interaction, interaction.user);
           condiPlayers.push({
-            player: interaction.user,
+            player: i.user,
             nickname,
             condition: condition,
           });
@@ -472,11 +468,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
   return submitted;
 };
 
-async function modalThing(
-  interaction: ButtonInteraction,
-  condiPlayers: ConditionalPlayer[],
-  confirmedPlayers: ConfirmedPlayer[]
-) {
+async function modalThing(interaction: ButtonInteraction) {
   //this is  a little busy
   const uniqueId = Date.now().toString();
   const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
