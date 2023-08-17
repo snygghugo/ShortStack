@@ -60,7 +60,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
   if (role) {
     guildSettings.yaposRole = role.id;
     await guildSettings.save();
-    reply = `Roger! In the future I will ping ${role} when I set up a stack.`;
+    reply = `Roger! In the future I will ping ${role} when I set up a stack!\nRemember to set "Allow anyone to @mention this role" to ON in Server Settings -> Roles -> ${role}, the setting is at the bottom of the "Display" section.`;
   }
   interaction.reply({ content: reply, ephemeral: false });
   return;

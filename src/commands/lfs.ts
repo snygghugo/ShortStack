@@ -33,7 +33,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     interaction.reply('Please provide unique players!\nLove, **ShortStack!**');
     return;
   }
-  interaction.deferReply();
-  interaction.deleteReply();
+  await interaction.deferReply();
+  await interaction.deleteReply();
   await setUp(interaction, confirmedPlayers);
 };

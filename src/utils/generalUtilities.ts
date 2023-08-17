@@ -45,10 +45,8 @@ export const getNickname = async (
 ) => {
   try {
     if (user instanceof User) {
-      return (
-        (await interaction.guild?.members.fetch(user.id))?.nickname ||
-        user.username
-      );
+      const member = await interaction.guild?.members.fetch(user.id);
+      return member?.nickname || member?.displayName || user.username;
     }
     return user.username;
   } catch (error) {
