@@ -181,18 +181,26 @@ export const setUp = async (
         const dummyName =
           modalInteraction.fields.getTextInputValue('dummyName');
         if (!dummyName) break;
-        const dummy = createDummy(dummyName);
-        confirmedPlayers.push({ player: dummy, nickname: dummyName });
+        const dummy = await createDummy(dummyName, i);
+        if (
+          confirmedPlayers.some(
+            ({ player }) => player.id === dummy.player.id
+          ) ||
+          condiPlayers.some(({ player }) => player.id === dummy.player.id)
+        ) {
+          await modalInteraction.reply({
+            content: `${dummyName} is already accounted for, as ${dummy.nickname}!`,
+            ephemeral: true,
+          });
+          break;
+        }
+        confirmedPlayers.push(dummy);
         await modalInteraction.update({
           embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
         });
         if (confirmedPlayers.length === 5) {
-          console.log(
-            "That's enough! Stopping the collector from within the dummy array stuff"
-          );
-          collector.stop(
-            "That's enough! Stopping the collector from within the dummy array stuff"
-          );
+          console.log('Stopping from withing dummy');
+          collector.stop('capacity');
         }
         break;
 
@@ -451,7 +459,7 @@ export const getDummyNameModal = async (interaction: ButtonInteraction) => {
     .setCustomId('dummyName')
     .setLabel('Who are you reserving a spot for?')
     .setPlaceholder('This spot is for...')
-    .setMaxLength(14)
+    .setMaxLength(25)
     .setStyle(TextInputStyle.Short);
   const modalInput = modalComponent(avatarInput);
   modal.addComponents(modalInput);

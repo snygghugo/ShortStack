@@ -1,14 +1,33 @@
 import { ButtonInteraction, ThreadChannel } from 'discord.js';
 import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 
-export const createDummy = (name: string): Dummy => ({
-  name,
-  id: name,
-  username: name,
-  user: { username: name },
-  displayAvatarURL: () => 'https://laggan.online/abb.png',
-  isDummy: true,
-});
+export const createDummy = async (name: string, i: ButtonInteraction) => {
+  const foundUser = (
+    await i.guild?.members.fetch({
+      query: name,
+      limit: 1,
+    })
+  )?.first();
+
+  if (foundUser) {
+    return {
+      player: foundUser.user,
+      nickname: foundUser.nickname || foundUser.displayName,
+    };
+  }
+
+  return {
+    player: {
+      name,
+      id: name,
+      username: name,
+      user: { username: name },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    } as Dummy,
+    nickname: name,
+  };
+};
 
 export const removeFromArray = (
   array: ConfirmedPlayer[] | ConfirmedPlayer[],

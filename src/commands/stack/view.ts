@@ -57,6 +57,11 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
     `/stack p1:${user}`,
     ...rest.map(({ user }, i) => `${' '.repeat(7)}p${i + 2}:${user}`),
   ];
+  let shortCommand = `\`\`\`${copyCodeCommand.join('\n')}\`\`\``;
+  if (copyCodeCommand.length < 5) {
+    shortCommand +=
+      '\n 👆 Note: The Absentee players are not included and need to be added to the command manually!\n';
+  }
   const sortedArray = [...playerArray].sort(
     (a, b) => parseInt(a.position.slice(3)) - parseInt(b.position.slice(3))
   );
@@ -67,7 +72,7 @@ const finalMessageMaker = (playerArray: PlayerObject[]) => {
   });
   return {
     finalMessage: finalArray.join(' | '),
-    shortCommand: `\`\`\`${copyCodeCommand.join('\n')}\`\`\``,
+    shortCommand,
   };
 };
 
@@ -120,7 +125,7 @@ export const stackEmbed = async (
   const { finalMessage, shortCommand } = finalMessageMaker(playerArray);
   const embed = {
     fields: [
-      { name: 'Copy Code:', value: shortCommand },
+      { name: 'Re-/stack Command Code:', value: shortCommand },
       {
         name: 'Picking complete!',
         // value: `${mobileField.join('\n')}`,
