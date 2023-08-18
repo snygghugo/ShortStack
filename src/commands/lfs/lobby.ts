@@ -43,24 +43,31 @@ import {
   STACK_BUTTONS,
   STACK_IT_BUTTON,
 } from '../../utils/buttons/buttonConsts';
+import { figureItOut } from './roleDistributor';
 
 export const createConfirmedPlayers = async (
   interaction: ChatInputCommandInteraction
 ) => {
   const confirmedPlayers: ConfirmedPlayer[] = [];
-  confirmedPlayers.push({
-    player: interaction.user,
+  const originatingPlayer = {
+    user: interaction.user,
+    preferences: await getUserPrefs(interaction.user.id),
     nickname: await getNickname(interaction, interaction.user),
-  });
+  };
+  confirmedPlayers.push(originatingPlayer);
   //It's a 2 because I arbitrarily start at p2 because p2 would be the 2nd person in the Dota party
   for (let i = 2; i < 7; i++) {
-    const player = interaction.options.getUser('p' + i);
-    if (player) {
-      if (confirmedPlayers.some(cP => cP.player.id === player.id)) {
+    const additionalUser = interaction.options.getUser('p' + i);
+    if (additionalUser) {
+      if (confirmedPlayers.some(cP => cP.user.id === additionalUser.id)) {
         return;
       }
-      const nickname = await getNickname(interaction, player);
-      confirmedPlayers.push({ player, nickname });
+      const additionalPlayer = {
+        user: additionalUser,
+        preferences: await getUserPrefs(additionalUser.id),
+        nickname: await getNickname(interaction, additionalUser),
+      };
+      confirmedPlayers.push(additionalPlayer);
     }
   }
   return confirmedPlayers;
@@ -101,11 +108,20 @@ export const setUp = async (
   await guildSettings.save();
   const partyThread = await pThreadCreator(interaction, dotaMessage);
   const confirmedPlayersWithoutDummies = confirmedPlayers.filter(
-    (p): p is { player: User; nickname: string } => !('isDummy' in p)
+    (p): p is { user: User; preferences: string[]; nickname: string } =>
+      !('isDummy' in p)
   );
-  confirmedPlayersWithoutDummies.forEach(p =>
-    partyThread.members.add(p.player)
-  );
+  confirmedPlayersWithoutDummies.forEach(p => partyThread.members.add(p.user));
+  if (confirmedPlayers.length === 5) {
+    console.log('Confirmed players are already five, skipping ahead');
+    await dotaMessage.edit({
+      content: 'Setting up ready check...',
+      components: [],
+      embeds: [],
+    });
+    readyChecker(confirmedPlayers, dotaMessage, partyThread);
+    return;
+  }
 
   const filter = (i: CollectedMessageInteraction) =>
     i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
@@ -114,21 +130,18 @@ export const setUp = async (
     time: timeLimit * 1000,
     componentType: ComponentType.Button,
   });
-  if (confirmedPlayers.length === 5) {
-    console.log('Confirmed players are already five, skipping ahead');
-    collector.stop();
-  }
   console.log('setUp: on collect');
   collector.on('collect', async i => {
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
       case STACK_BUTTONS.join.btnId:
-        if (!confirmedPlayers.some(({ player }) => player.id === i.user.id)) {
+        if (!confirmedPlayers.some(({ user }) => user.id === i.user.id)) {
           removeFromArray(condiPlayers, i);
           const nickname = await getNickname(i, i.user);
-          confirmedPlayers.push({ player: i.user, nickname });
+          const preferences = await getUserPrefs(i.user.id);
+          confirmedPlayers.push({ user: i.user, preferences, nickname });
           await partyThread.members.add(i.user);
-          if (confirmedPlayers.length > 4) {
+          if (confirmedPlayers.length === 5) {
             console.log(
               "That's enough! Stopping the collector from within the case buttonOptions.in"
             );
@@ -136,11 +149,12 @@ export const setUp = async (
               "That's enough! Collector is stopped from the switch case buttonOptions.in"
             );
           }
+          figureItOut(confirmedPlayers);
         }
         break;
 
       case STACK_BUTTONS.condi.btnId:
-        if (!condiPlayers.some(({ player }) => player.id === i.user.id)) {
+        if (!condiPlayers.some(({ user }) => user.id === i.user.id)) {
           const modalInteraction = await condiModal(i);
           if (!modalInteraction) {
             console.log(
@@ -155,9 +169,11 @@ export const setUp = async (
             'reason'
           )} *(written <t:${time}:R>)*`;
           const nickname = await getNickname(interaction, interaction.user);
+          const preferences = await getUserPrefs(i.user.id);
           condiPlayers.push({
-            player: i.user,
+            user: i.user,
             nickname,
+            preferences,
             condition: condition,
           });
           removeFromArray(confirmedPlayers, i);
@@ -183,10 +199,8 @@ export const setUp = async (
         if (!dummyName) break;
         const dummy = await createDummy(dummyName, i);
         if (
-          confirmedPlayers.some(
-            ({ player }) => player.id === dummy.player.id
-          ) ||
-          condiPlayers.some(({ player }) => player.id === dummy.player.id)
+          confirmedPlayers.some(({ user }) => user.id === dummy.user.id) ||
+          condiPlayers.some(({ user }) => user.id === dummy.user.id)
         ) {
           await modalInteraction.reply({
             content: `${dummyName} is already accounted for, as ${dummy.nickname}!`,
@@ -249,7 +263,7 @@ const readyChecker = async (
     stoppedMessageContent,
     finalMessageContent,
   } = readyCheckerStrings;
-  const readyArray = confirmedPlayers.map(({ player }) => ({
+  const readyArray = confirmedPlayers.map(({ user: player }) => ({
     gamer: player,
     ready: false,
     pickTime: 0,
@@ -434,11 +448,10 @@ async function stackIt(
 
     const playerArray: PlayerObject[] = [];
 
-    for (let { player, nickname } of confirmedPlayers) {
-      const preferences = await getUserPrefs(player.id);
+    for (let { user, preferences, nickname } of confirmedPlayers) {
       playerArray.push({
-        user: player,
-        nickname: nickname,
+        user,
+        nickname,
         position: '',
         preferences,
         artTarget: false,

@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { prefEmbedMaker } from '../utils/view';
-import { reactionCollector } from './preference/reactionsCollector';
+import { reactionCollector } from './preferences/reactionsCollector';
 import { updateUserPrefs } from '../database/db';
 import { getTimestamp } from './lfs/utilities';
 
@@ -23,5 +23,3 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
     createdMessage.delete();
   }, 60 * 1000);
 };
-
-//MAKE IT SELF-EXPLODE

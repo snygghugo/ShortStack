@@ -1,4 +1,5 @@
 import { credentials as CREDENTIALS } from '../config.json';
+import { BLANK } from './textContent';
 export const CONNECTION = `mongodb+srv://${CREDENTIALS}@hugodata.kl5zxil.mongodb.net/?retryWrites=true&w=majority`;
 
 export const READY_COLOURS = {
@@ -19,3 +20,6 @@ export const QUEUE_OPTIONS = {
   leave: 'leave',
   invoke: 'invoke',
 };
+
+export const BLANK_FIELD = { name: BLANK, value: BLANK, inline: false };
+export const BLANK_FIELD_INLINE = { name: BLANK, value: BLANK, inline: true };

@@ -1,5 +1,6 @@
 import { ButtonInteraction, ThreadChannel } from 'discord.js';
 import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
+import { getUserPrefs } from '../../database/db';
 
 export const createDummy = async (name: string, i: ButtonInteraction) => {
   const foundUser = (
@@ -11,13 +12,14 @@ export const createDummy = async (name: string, i: ButtonInteraction) => {
 
   if (foundUser) {
     return {
-      player: foundUser.user,
+      user: foundUser.user,
+      preferences: await getUserPrefs(foundUser.id),
       nickname: foundUser.nickname || foundUser.displayName,
     };
   }
 
   return {
-    player: {
+    user: {
       name,
       id: name,
       username: name,
@@ -25,6 +27,7 @@ export const createDummy = async (name: string, i: ButtonInteraction) => {
       displayAvatarURL: () => 'https://laggan.online/abb.png',
       isDummy: true,
     } as Dummy,
+    preferences: ['fill'],
     nickname: name,
   };
 };
@@ -34,7 +37,7 @@ export const removeFromArray = (
   interaction: ButtonInteraction
 ) => {
   const index = array.findIndex(
-    ({ player }) => player.id === interaction.user.id
+    ({ user: player }) => player.id === interaction.user.id
   );
   if (index > -1) {
     array.splice(index, 1); //Return the array instead probably

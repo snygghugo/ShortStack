@@ -10,12 +10,14 @@ export type PlayerObject = {
   fillFlag: boolean;
 };
 export type ConditionalPlayer = {
-  player: User;
+  user: User;
   nickname: string;
+  preferences: string[];
   condition: string;
 };
 export type ConfirmedPlayer = {
-  player: User | Dummy;
+  user: User | Dummy;
+  preferences: string[];
   nickname: string;
 };
 

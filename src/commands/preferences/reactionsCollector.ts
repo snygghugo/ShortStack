@@ -1,14 +1,15 @@
 import { Message, User, MessageReaction } from 'discord.js';
 import { prefEmbedMaker } from '../../utils/view';
 import { tsCompliantIncludes } from '../../utils/generalUtilities';
-const emojiDict = {
+
+export const EMOJI_DICT = {
   '1️⃣': 'pos1',
   '2️⃣': 'pos2',
   '3️⃣': 'pos3',
   '4️⃣': 'pos4',
   '5️⃣': 'pos5',
 } as { [emoji: string]: string };
-const emojiRoles = Object.keys(emojiDict);
+const emojiRoles = Object.keys(EMOJI_DICT);
 
 export const reactionCollector = async (
   message: Message,
@@ -17,7 +18,6 @@ export const reactionCollector = async (
   emojiRoles.forEach(async emoji => await message.react(emoji));
   const emojiCopy = [...emojiRoles];
   const chosenRoles: string[] = [];
-
   const filter = (reaction: MessageReaction, user: User) =>
     tsCompliantIncludes(emojiCopy, reaction.emoji.name) &&
     user.id === interactionUser.id;
@@ -55,5 +55,5 @@ export const reactionCollector = async (
       res(collected);
     });
   });
-  return chosenRoles.map(emoji => emojiDict[emoji]);
+  return chosenRoles.map(emoji => EMOJI_DICT[emoji]);
 };

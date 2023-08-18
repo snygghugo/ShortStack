@@ -3,8 +3,8 @@ import {
   Message,
   ButtonInteraction,
   ComponentType,
-  CollectedInteraction,
   AttachmentBuilder,
+  CollectedInteraction,
 } from 'discord.js';
 import { PlayerObject } from '../../utils/types';
 import {
@@ -15,6 +15,7 @@ import {
 import { getGuildFromDb } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 import { Canvas } from '@napi-rs/canvas';
+import { strictPicking } from './utilities';
 
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
@@ -25,6 +26,7 @@ export const stackSetup = async (
   interaction.deferReply();
   if (!interaction.guildId) throw new Error('GuildId Issues');
   const guildSettings = await getGuildFromDb(interaction.guildId);
+  const isStrictPicking = guildSettings.strictPicking;
   const channel = await getChannel(guildSettings.yaposChannel, interaction);
   // const channel = await getChannelFromSettings(interaction, 'dota');
   const message = oldMessage || (await channel.send('Setting up shop...'));
@@ -36,7 +38,7 @@ export const stackSetup = async (
     });
   }
   interaction.deleteReply();
-  stackExecute(playerArray, message, pickTime, interaction);
+  stackExecute(playerArray, message, pickTime, interaction, isStrictPicking);
 };
 
 const stackExecute = async (
@@ -44,6 +46,7 @@ const stackExecute = async (
   message: Message<true>,
   pickTime: number,
   interaction: ChatInputCommandInteraction | ButtonInteraction,
+  isStrictPicking: boolean,
   oldCanvas?: Canvas
 ) => {
   const available = availableRoles(playerArray);
@@ -71,9 +74,9 @@ const stackExecute = async (
   const spaghettiTime = -1; //HURRY UP
 
   await message.edit({
-    content: `${getNameWithPing(
+    content: `**YOUR TURN TO PICK ${getNameWithPing(
       nextUp.user
-    )} You're up! If you do not pick you will be assigned ${assignedRole} in <t:${
+    )}!**\nIf you do not pick you will be assigned ${assignedRole} in <t:${
       time + pickTime + spaghettiTime
     }:R>`,
     embeds: [embed],
@@ -85,7 +88,6 @@ const stackExecute = async (
   const collector = message.channel.createMessageComponentCollector({
     filter,
     time: pickTime * 1000,
-    max: 1,
     componentType: ComponentType.Button,
   });
 
@@ -93,6 +95,22 @@ const stackExecute = async (
     console.log(
       `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
     );
+    if (isStrictPicking) {
+      const isAppropriateInteraction = strictPicking(
+        i,
+        message,
+        nextUp,
+        interaction
+      );
+      if (!isAppropriateInteraction) {
+        await i.reply({
+          content: "It's not your turn to pick yet!",
+          ephemeral: true,
+        });
+        return;
+      }
+    }
+
     switch (i.customId) {
       case 'random':
         const unpickedRoles = [...available, 'fill'];
@@ -104,6 +122,7 @@ const stackExecute = async (
         nextUp.position = i.customId;
     }
     i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS, WITH RANDOM PHRASES
+    collector.stop();
   });
 
   collector.on('end', () => {
@@ -116,7 +135,14 @@ const stackExecute = async (
       if (nextUp.position === 'fill') {
         nextUp.artTarget = false;
       }
-      stackExecute(playerArray, message, pickTime, interaction, newCanvas);
+      stackExecute(
+        playerArray,
+        message,
+        pickTime,
+        interaction,
+        isStrictPicking,
+        newCanvas
+      );
       return;
     } catch (error) {
       message.edit('There was an error, baby!  ' + error);

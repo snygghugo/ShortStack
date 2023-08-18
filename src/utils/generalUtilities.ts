@@ -72,3 +72,20 @@ export const getChannel = async (
     throw new Error('Interaction.channel is not correct type');
   return interaction.channel;
 };
+
+export const parsePrefsForEmbed = (pos: string) => {
+  switch (pos) {
+    case 'pos1':
+      return '1️⃣';
+    case 'pos2':
+      return '2️⃣';
+    case 'pos3':
+      return '3️⃣';
+    case 'pos4':
+      return '4️⃣';
+    case 'pos5':
+      return '5️⃣';
+    default:
+      return 'No /preferences set!';
+  }
+};

@@ -1,4 +1,4 @@
-//add roles
+//TODO: CHECK PERMISSION TO PING EVERYONE - OTHER ALTERNATIVES?
 
 import { ChannelType, Client, Collection, GatewayIntentBits } from 'discord.js';
 import { connect } from 'mongoose';

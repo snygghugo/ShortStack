@@ -4,14 +4,21 @@ import {
   ConditionalPlayer,
   PlayerToReady,
 } from '../../utils/types';
-import { READY_COLOURS } from '../../utils/consts';
+import {
+  BLANK_FIELD,
+  BLANK_FIELD_INLINE,
+  READY_COLOURS,
+} from '../../utils/consts';
 import { createButton } from '../../utils/view';
 import {
   roleCallEmbedStrings,
   readyEmbedStrings,
   BLANK,
 } from '../../utils/textContent';
-import { getNameWithPing } from '../../utils/generalUtilities';
+import {
+  getNameWithPing,
+  parsePrefsForEmbed,
+} from '../../utils/generalUtilities';
 import { READY_BUTTONS, STACK_BUTTONS } from '../../utils/buttons/buttonConsts';
 
 export const inOutBut = () => {
@@ -44,27 +51,41 @@ export const roleCallEmbed = (
   const { open, dotaQuery, condiHeading } = roleCallEmbedStrings;
   const maxLength = 5;
   const playerFields = [];
-  const conditionalFields: string[] = [];
-  const embedFields = [];
+  const preferencesFields = [];
   for (let i = 0; i < maxLength; i++) {
     if (confirmedPlayers[i]) {
-      playerFields.push(getNameWithPing(confirmedPlayers[i].player).toString());
+      playerFields.push(getNameWithPing(confirmedPlayers[i].user).toString());
+      preferencesFields.push(
+        confirmedPlayers[i].preferences.map(parsePrefsForEmbed).join(' > ')
+      );
     } else {
       playerFields.push(open);
     }
   }
-  embedFields.push({
-    name: dotaQuery,
-    value: playerFields.join('\n'),
-  });
+  const embedFields = [
+    { name: dotaQuery, value: playerFields.join('\n'), inline: true },
+    BLANK_FIELD_INLINE,
+    {
+      name: '*Preferences*',
+      value: preferencesFields.join('\n'),
+      inline: true,
+    },
+  ];
 
   if (condiPlayers.length > 0) {
-    condiPlayers.map(e => {
-      conditionalFields.push(`${e.player} ${e.condition}`);
-    });
+    const conditionalNames = condiPlayers.map(e => e.user);
+    const conditionalConditions = condiPlayers.map(e => e.condition);
+    embedFields.push(BLANK_FIELD);
     embedFields.push({
       name: condiHeading,
-      value: conditionalFields.join('\n'),
+      value: conditionalNames.join('\n'),
+      inline: true,
+    });
+    embedFields.push(BLANK_FIELD_INLINE);
+    embedFields.push({
+      name: '*Condition*',
+      value: conditionalConditions.join('\n'),
+      inline: true,
     });
   }
 
