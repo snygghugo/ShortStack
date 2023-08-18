@@ -9,7 +9,7 @@ export const createDummy = async (name: string, i: ButtonInteraction) => {
       limit: 1,
     })
   )?.first();
-
+  //TODO: REWRITE THIS GUY TO TAKE MORE THAN 1 AND CHECK WHICH ONE IS MORE APPROPRIATE
   if (foundUser) {
     return {
       user: foundUser.user,

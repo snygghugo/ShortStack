@@ -52,16 +52,19 @@ export const roleCallEmbed = (
   const maxLength = 5;
   const playerFields = [];
   const preferencesFields = [];
+
   for (let i = 0; i < maxLength; i++) {
-    if (confirmedPlayers[i]) {
-      playerFields.push(getNameWithPing(confirmedPlayers[i].user).toString());
+    const player = confirmedPlayers[i];
+    if (player) {
+      playerFields.push(getNameWithPing(player.user).toString());
       preferencesFields.push(
-        confirmedPlayers[i].preferences.map(parsePrefsForEmbed).join(' > ')
+        player.preferences.map(parsePrefsForEmbed).join(' > ')
       );
     } else {
       playerFields.push(open);
     }
   }
+
   const embedFields = [
     { name: dotaQuery, value: playerFields.join('\n'), inline: true },
     BLANK_FIELD_INLINE,

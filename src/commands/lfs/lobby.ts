@@ -39,6 +39,7 @@ import {
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 import {
   READY_BUTTONS,
+  READY_TO_READY_BUTTON,
   REDO_BUTTON,
   STACK_BUTTONS,
   STACK_IT_BUTTON,
@@ -124,7 +125,9 @@ export const setUp = async (
   }
 
   const filter = (i: CollectedMessageInteraction) =>
-    i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
+    (i.customId in STACK_BUTTONS ||
+      i.customId === READY_TO_READY_BUTTON.btnId) &&
+    i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
     filter,
     time: timeLimit * 1000,
@@ -142,12 +145,17 @@ export const setUp = async (
           confirmedPlayers.push({ user: i.user, preferences, nickname });
           await partyThread.members.add(i.user);
           if (confirmedPlayers.length === 5) {
+            await i.update({
+              embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+              components: [createButtonRow(READY_TO_READY_BUTTON)],
+            });
+
             console.log(
               "That's enough! Stopping the collector from within the case buttonOptions.in"
             );
-            collector.stop(
-              "That's enough! Collector is stopped from the switch case buttonOptions.in"
-            );
+            // collector.stop(
+            //   "That's enough! Collector is stopped from the switch case buttonOptions.in"
+            // );
           }
         }
         break;
@@ -208,18 +216,27 @@ export const setUp = async (
           break;
         }
         confirmedPlayers.push(dummy);
+        if (confirmedPlayers.length === 5) {
+          console.log('Stopping from withing dummy');
+          await modalInteraction.update({
+            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+            components: [createButtonRow(READY_TO_READY_BUTTON)],
+          });
+          break;
+          // collector.stop('capacity');
+        }
         await modalInteraction.update({
           embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
         });
-        if (confirmedPlayers.length === 5) {
-          console.log('Stopping from withing dummy');
-          collector.stop('capacity');
-        }
         break;
 
       case STACK_BUTTONS.leave.btnId:
         removeFromArray(condiPlayers, i);
         removeFromArray(confirmedPlayers, i);
+        break;
+
+      case READY_TO_READY_BUTTON.btnId:
+        collector.stop();
         break;
     }
     if (!i.replied) {
@@ -235,6 +252,7 @@ export const setUp = async (
       await dotaMessage.edit({
         content: outOfTime,
         components: [],
+        embeds: [],
       });
       return;
     }
@@ -447,7 +465,7 @@ async function stackIt(
 
     const playerArray: PlayerObject[] = [];
 
-    for (let { user, preferences, nickname } of confirmedPlayers) {
+    for (const { user, preferences, nickname } of confirmedPlayers) {
       playerArray.push({
         user,
         nickname,

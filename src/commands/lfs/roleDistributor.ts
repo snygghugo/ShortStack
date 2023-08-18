@@ -36,86 +36,43 @@ export const figureItOut = () => {
         isDummy: true,
       },
       nickname: 'Tester',
-      preferences: ['pos5', 'pos4', 'x', 'x', 'x'],
+      preferences: ['pos5', 'pos4', 'pos3', 'x', 'x'],
     },
   ];
   const particularPlayers = confirmedCopy.filter(({ preferences }) =>
     preferences.includes('x')
   );
-  const theContestedObject = [
-    {
-      role: 'pos1',
-      firstPref: 0,
-      secondPref: 0,
-      thirdPref: 0,
-      fourthPref: 0,
-      fifthPref: 0,
-      undesired: 0,
-    },
-    {
-      role: 'pos2',
-      firstPref: 0,
-      secondPref: 0,
-      thirdPref: 0,
-      fourthPref: 0,
-      fifthPref: 0,
-      undesired: 0,
-    },
-    {
-      role: 'pos3',
-      firstPref: 0,
-      secondPref: 0,
-      thirdPref: 0,
-      fourthPref: 0,
-      fifthPref: 0,
-      undesired: 0,
-    },
-    {
-      role: 'pos4',
-      firstPref: 0,
-      secondPref: 0,
-      thirdPref: 0,
-      fourthPref: 0,
-      fifthPref: 0,
-      undesired: 0,
-    },
-    {
-      role: 'pos5',
-      firstPref: 0,
-      secondPref: 0,
-      thirdPref: 0,
-      fourthPref: 0,
-      fifthPref: 0,
-      undesired: 0,
-    },
+
+  type Role = {
+    role: string;
+    potentialPlayers: string[];
+    restrictedTo: string[];
+  };
+
+  const roles: Role[] = [
+    { role: 'pos1', potentialPlayers: [], restrictedTo: [] },
+    { role: 'pos2', potentialPlayers: [], restrictedTo: [] },
+    { role: 'pos3', potentialPlayers: [], restrictedTo: [] },
+    { role: 'pos4', potentialPlayers: [], restrictedTo: [] },
+    { role: 'pos5', potentialPlayers: [], restrictedTo: [] },
   ];
 
   particularPlayers.forEach(player => {
-    theContestedObject.forEach(role => {
-      const desireindex = player.preferences.indexOf(role.role);
-      switch (desireindex) {
-        case 0: //If it's found early, it means it's desired
-          role.firstPref++;
-          break;
-        case 1:
-          role.secondPref++;
-          break;
-        case 2:
-          role.thirdPref++;
-          break;
-        case 3:
-          role.fourthPref++;
-          break;
-        case 4:
-          role.fifthPref++;
-          break;
-        case -1: //if it's not found at all, it's undesired
-          role.undesired++;
-          break;
-      }
-    });
+    if (player.preferences.length === 1) {
+      console.log('VERY picky player');
+    }
   });
-  console.log(theContestedObject);
+  //IF THERE ARE TWO PLAYERS WHO ONLY PLAY THE SAME TWO ROLES, THOSE ROLES SHOULD BE UNAVAILABLE FOR ANYONE ELSE
+
+  const numberOfPlayers = confirmedCopy.length;
+  const availableRoles = roles.filter(role => {
+    role.potentialPlayers;
+  });
+  const rolesPeopleCanPlay = roles.filter(
+    ({ potentialPlayers }) => potentialPlayers.length
+  );
+  console.log(rolesPeopleCanPlay);
+  console.log(roles);
 };
 
 figureItOut();
