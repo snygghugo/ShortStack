@@ -32,6 +32,12 @@ export const QUEUE_BUTTON = {
   btnStyle: ButtonStyle.Primary,
 };
 
+export const READY_TO_READY_BUTTON = {
+  btnText: 'Start Ready Checker!',
+  btnId: 'readyToReady',
+  btnStyle: ButtonStyle.Secondary,
+};
+
 export const STACK_IT_BUTTON = {
   btnText: 'Stack it!',
   btnId: 'stack',

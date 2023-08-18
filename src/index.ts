@@ -5,8 +5,8 @@ import { connect } from 'mongoose';
 import fs from 'node:fs';
 import path from 'node:path';
 import { token } from './config.json';
-import { CONNECTION } from './utils/consts';
 import { transferDb } from './database/transferDb';
+import { CONNECTION } from './utils/consts';
 
 interface ClientWithCommands extends Client {
   commands: Collection<string, any>;
