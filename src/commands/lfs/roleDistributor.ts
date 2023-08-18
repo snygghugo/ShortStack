@@ -60,6 +60,7 @@ export const figureItOut = () => {
   particularPlayers.forEach(player => {
     if (player.preferences.length === 1) {
       console.log('VERY picky player');
+      roles;
     }
   });
   //IF THERE ARE TWO PLAYERS WHO ONLY PLAY THE SAME TWO ROLES, THOSE ROLES SHOULD BE UNAVAILABLE FOR ANYONE ELSE
