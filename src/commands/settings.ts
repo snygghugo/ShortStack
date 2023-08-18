@@ -7,8 +7,6 @@ import {
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
-import { type } from 'os';
-import { isBooleanObject } from 'util/types';
 
 export const data = new SlashCommandBuilder()
   .setName('settings')
@@ -51,21 +49,26 @@ export const data = new SlashCommandBuilder()
       )
   );
 
+const throwIfNullOrUndefined = <Type>(
+  thingToCheck: Type | undefined | null
+) => {
+  if (thingToCheck) {
+    return thingToCheck;
+  }
+  throw new Error(`Unable to get ${{ thingToCheck }}`);
+};
+
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   if (!interaction.guildId) throw new Error('GuildId is falsy');
-
-  const commandName = interaction.options.data[0];
-  if (!commandName) throw new Error('Unable to get commandName');
-  const stacksChannel = interaction.options.getChannel('stackschannel');
-  const role = interaction.options.getRole('role');
-  const strictPicking = interaction.options.getBoolean(
-    'strictpicking'
-  ) as boolean; //TODO: Find better way to typeguard this
+  const commandName = throwIfNullOrUndefined(
+    interaction.options.getSubcommand()
+  );
   const guildSettings = await getGuildFromDb(interaction.guildId);
   let reply = 'Nothing was changed!';
 
-  switch (commandName.name) {
+  switch (commandName) {
     case 'stackschannel':
+      const stacksChannel = interaction.options.getChannel('stackschannel');
       if (!stacksChannel) throw new Error('Unable to get stacksChannel!');
       if (stacksChannel.type !== ChannelType.GuildText) {
         return interaction.reply({
@@ -77,6 +80,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       reply = `Roger! In the future I will output the good stuff in ${stacksChannel}.`;
       break;
     case 'role':
+      const role = interaction.options.getRole('role');
       if (!role) throw new Error('Unable to get role!');
       if (role.id === interaction.guildId) {
         return interaction.reply({
@@ -85,9 +89,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         });
       }
       guildSettings.yaposRole = role.id;
-      reply = `Roger! In the future I will ping ${role} when I set up a stack!\nRemember to set "Allow anyone to @mention this role" to ON in Server Settings -> Roles -> ${role}, the setting is at the bottom of the "Display" section.`;
+      reply = `Roger! In the future I will ping ${role} when I set up a stack!`;
       break;
     case 'strictpicking':
+      const strictPicking = interaction.options.getBoolean('strictpicking');
+      if (strictPicking === null)
+        throw new Error('Unable to get strictpicking!');
       guildSettings.strictPicking = strictPicking;
       if (strictPicking) {
         reply =

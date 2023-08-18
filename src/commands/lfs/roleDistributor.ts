@@ -1,8 +1,7 @@
 import { ConfirmedPlayer } from '../../utils/types';
 
-export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
-  const confirmedCopy: ConfirmedPlayer[] = [
-    ...confirmedPlayers,
+export const figureItOut = () => {
+  const confirmedCopy = [
     {
       user: {
         name: 'Tester',
@@ -40,54 +39,53 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
       preferences: ['pos5', 'pos4', 'x', 'x', 'x'],
     },
   ];
-  const availableRoles = ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'];
-  const particularPlayers = confirmedCopy.filter(
-    ({ preferences }) => preferences[0] !== 'fill' && preferences.length < 5
+  const particularPlayers = confirmedCopy.filter(({ preferences }) =>
+    preferences.includes('x')
   );
   const theContestedObject = [
     {
       role: 'pos1',
-      firstPick: 0,
-      secondPick: 0,
-      thirdPick: 0,
-      fourthPick: 0,
-      fifthPick: 0,
+      firstPref: 0,
+      secondPref: 0,
+      thirdPref: 0,
+      fourthPref: 0,
+      fifthPref: 0,
       undesired: 0,
     },
     {
       role: 'pos2',
-      firstPick: 0,
-      secondPick: 0,
-      thirdPick: 0,
-      fourthPick: 0,
-      fifthPick: 0,
+      firstPref: 0,
+      secondPref: 0,
+      thirdPref: 0,
+      fourthPref: 0,
+      fifthPref: 0,
       undesired: 0,
     },
     {
       role: 'pos3',
-      firstPick: 0,
-      secondPick: 0,
-      thirdPick: 0,
-      fourthPick: 0,
-      fifthPick: 0,
+      firstPref: 0,
+      secondPref: 0,
+      thirdPref: 0,
+      fourthPref: 0,
+      fifthPref: 0,
       undesired: 0,
     },
     {
       role: 'pos4',
-      firstPick: 0,
-      secondPick: 0,
-      thirdPick: 0,
-      fourthPick: 0,
-      fifthPick: 0,
+      firstPref: 0,
+      secondPref: 0,
+      thirdPref: 0,
+      fourthPref: 0,
+      fifthPref: 0,
       undesired: 0,
     },
     {
       role: 'pos5',
-      firstPick: 0,
-      secondPick: 0,
-      thirdPick: 0,
-      fourthPick: 0,
-      fifthPick: 0,
+      firstPref: 0,
+      secondPref: 0,
+      thirdPref: 0,
+      fourthPref: 0,
+      fifthPref: 0,
       undesired: 0,
     },
   ];
@@ -96,25 +94,28 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
     theContestedObject.forEach(role => {
       const desireindex = player.preferences.indexOf(role.role);
       switch (desireindex) {
-        case 0:
-          role.firstPick++;
+        case 0: //If it's found early, it means it's desired
+          role.firstPref++;
           break;
         case 1:
-          role.secondPick++;
+          role.secondPref++;
           break;
         case 2:
-          role.thirdPick++;
+          role.thirdPref++;
           break;
         case 3:
-          role.fourthPick++;
+          role.fourthPref++;
           break;
         case 4:
-          role.fifthPick++;
+          role.fifthPref++;
           break;
-        default:
+        case -1: //if it's not found at all, it's undesired
+          role.undesired++;
           break;
       }
     });
   });
   console.log(theContestedObject);
 };
+
+figureItOut();

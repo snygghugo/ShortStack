@@ -149,7 +149,6 @@ export const setUp = async (
               "That's enough! Collector is stopped from the switch case buttonOptions.in"
             );
           }
-          figureItOut(confirmedPlayers);
         }
         break;
 

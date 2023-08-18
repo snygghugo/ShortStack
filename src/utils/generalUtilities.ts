@@ -5,7 +5,6 @@ import {
   ChannelType,
 } from 'discord.js';
 import { Dummy } from './types';
-import { type } from 'node:os';
 
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,

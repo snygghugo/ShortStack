@@ -2,34 +2,28 @@ import {
   ButtonInteraction,
   ChatInputCommandInteraction,
   CollectedInteraction,
-  Message,
 } from 'discord.js';
 import { PlayerObject } from '../../utils/types';
 
 export const strictPicking = (
   i: CollectedInteraction,
-  message: Message,
   nextUp: PlayerObject,
   interaction: ChatInputCommandInteraction | ButtonInteraction
 ) => {
   const interactor = i.user;
   const stackCreator = interaction.user;
-  console.log('this is the interactor', interactor.username);
-  console.log('this is the stackCreator', stackCreator.username);
-  console.log('this is the one who should be clicking', nextUp.user.username);
+  const expectedInteractor = nextUp.user;
+  console.log('this is i.user.bot', i.user.bot);
   if ('isDummy' in nextUp.user || i.user.bot) {
+    //TODO: explore why the i.user.bot thing doesn't seem to work
     console.log('this one has isDummy in nextUp, so anything goes');
     return true;
   }
   if (interactor.id === stackCreator.id) {
-    console.log('The creator can do what they want');
     return true;
   }
-
-  if (interactor.id === nextUp.user.id) {
-    console.log('This is an appropriate person to pick');
+  if (interactor.id === expectedInteractor.id) {
     return true;
   }
-  console.log('This is not an appropriate person to pick');
   return false;
 };

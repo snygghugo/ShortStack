@@ -96,12 +96,7 @@ const stackExecute = async (
       `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
     );
     if (isStrictPicking) {
-      const isAppropriateInteraction = strictPicking(
-        i,
-        message,
-        nextUp,
-        interaction
-      );
+      const isAppropriateInteraction = strictPicking(i, nextUp, interaction);
       if (!isAppropriateInteraction) {
         await i.reply({
           content: "It's not your turn to pick yet!",
