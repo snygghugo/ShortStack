@@ -5,7 +5,7 @@ import { updateUserPrefs } from '../database/db';
 import { getTimestamp } from './lfs/utilities';
 
 export const data = new SlashCommandBuilder()
-  .setName('preference')
+  .setName('preferences')
   .setDescription('Set your role preferences');
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   const interactionUser = interaction.user;
