@@ -65,6 +65,17 @@ export const figureItOut = () => {
   });
   //IF THERE ARE TWO PLAYERS WHO ONLY PLAY THE SAME TWO ROLES, THOSE ROLES SHOULD BE UNAVAILABLE FOR ANYONE ELSE
 
+  //IF ONE PERSON ONLY HAS ONE ROLE AS PREFERENCE, THE NEXT PERSON SHOULD HAVE ALL THE OTHER ROLES AS PREFERENCE
+
+  particularPlayers.forEach(player => {
+    if (player.preferences.length === 1) {
+      //player only wants to play one thing
+      const [preferredRole] = player.preferences;
+      const roleToRestrict = roles.find(({ role }) => role === preferredRole);
+      roleToRestrict?.restrictedTo.push(player.user.id);
+    }
+  });
+
   const numberOfPlayers = confirmedCopy.length;
   const availableRoles = roles.filter(role => {
     role.potentialPlayers;

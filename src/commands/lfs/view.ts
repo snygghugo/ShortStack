@@ -76,18 +76,13 @@ export const roleCallEmbed = (
   ];
 
   if (condiPlayers.length > 0) {
-    const conditionalNames = condiPlayers.map(e => e.user);
-    const conditionalConditions = condiPlayers.map(e => e.condition);
+    const conditionalFields = condiPlayers.map(
+      ({ user, condition }) => `${user} - ${condition}`
+    );
     embedFields.push(BLANK_FIELD);
     embedFields.push({
       name: condiHeading,
-      value: conditionalNames.join('\n'),
-      inline: true,
-    });
-    embedFields.push(BLANK_FIELD_INLINE);
-    embedFields.push({
-      name: '*Condition*',
-      value: conditionalConditions.join('\n'),
+      value: conditionalFields.join('\n'),
       inline: true,
     });
   }
