@@ -134,7 +134,6 @@ export const stackEmbed = async (
         value: nameField,
         inline: true,
       },
-      BLANK_FIELD_INLINE,
       { name: BLANK, value: positionField, inline: true },
     ],
     image: {

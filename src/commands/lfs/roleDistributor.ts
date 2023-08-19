@@ -12,7 +12,7 @@ export const figureItOut = () => {
         isDummy: true,
       },
       nickname: 'Tester',
-      preferences: ['pos5', 'pos4', 'x', 'x', 'x'],
+      preferences: ['pos5', 'pos4'],
     },
     {
       user: {
@@ -24,7 +24,7 @@ export const figureItOut = () => {
         isDummy: true,
       },
       nickname: 'Tester',
-      preferences: ['pos4', 'pos5', 'x', 'x', 'x'],
+      preferences: ['pos4', 'pos5'],
     },
     {
       user: {
@@ -36,25 +36,35 @@ export const figureItOut = () => {
         isDummy: true,
       },
       nickname: 'Tester',
-      preferences: ['pos5', 'pos4', 'pos3', 'x', 'x'],
+      preferences: ['pos5', 'pos4', 'pos3'],
     },
   ];
-  const particularPlayers = confirmedCopy.filter(({ preferences }) =>
-    preferences.includes('x')
-  );
+  type ParticularPlayer = {
+    id: string;
+    preferences: string[];
+    preferenceWeight: number;
+  };
+  const particularPlayers: ParticularPlayer[] = confirmedCopy
+    .filter(({ preferences }) => preferences.length !== 5)
+    .map(({ preferences, user }) => ({
+      id: user.id,
+      preferences,
+      preferenceWeight: 1 / preferences.length,
+    }));
 
   type Role = {
     role: string;
     potentialPlayers: string[];
     restrictedTo: string[];
+    carriedWeight: number;
   };
 
   const roles: Role[] = [
-    { role: 'pos1', potentialPlayers: [], restrictedTo: [] },
-    { role: 'pos2', potentialPlayers: [], restrictedTo: [] },
-    { role: 'pos3', potentialPlayers: [], restrictedTo: [] },
-    { role: 'pos4', potentialPlayers: [], restrictedTo: [] },
-    { role: 'pos5', potentialPlayers: [], restrictedTo: [] },
+    { role: 'pos1', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
+    { role: 'pos2', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
+    { role: 'pos3', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
+    { role: 'pos4', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
+    { role: 'pos5', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
   ];
 
   particularPlayers.forEach(player => {
@@ -67,23 +77,20 @@ export const figureItOut = () => {
 
   //IF ONE PERSON ONLY HAS ONE ROLE AS PREFERENCE, THE NEXT PERSON SHOULD HAVE ALL THE OTHER ROLES AS PREFERENCE
 
+  roles; //DO THE LOGIC HERE INSTEAD
+
+  //THIS SHOULD BE REVERSED, IT SHOULD BE ROLES DOING THE LOGIC
   particularPlayers.forEach(player => {
-    if (player.preferences.length === 1) {
-      //player only wants to play one thing
-      const [preferredRole] = player.preferences;
-      const roleToRestrict = roles.find(({ role }) => role === preferredRole);
-      roleToRestrict?.restrictedTo.push(player.user.id);
-    }
+    console.log('thiis is preference weight', player.preferenceWeight);
+    player.preferences.forEach(preference => {
+      const foundPreference = roles.find(({ role }) => role === preference);
+      if (foundPreference) {
+        foundPreference.potentialPlayers.push(player.id);
+        foundPreference.carriedWeight += player.preferenceWeight;
+      }
+    });
   });
 
-  const numberOfPlayers = confirmedCopy.length;
-  const availableRoles = roles.filter(role => {
-    role.potentialPlayers;
-  });
-  const rolesPeopleCanPlay = roles.filter(
-    ({ potentialPlayers }) => potentialPlayers.length
-  );
-  console.log(rolesPeopleCanPlay);
   console.log(roles);
 };
 

@@ -219,6 +219,9 @@ export const setUp = async (
           });
           break;
         }
+        if (dummy.user instanceof User) {
+          await partyThread.members.add(dummy.user);
+        }
         confirmedPlayers.push(dummy);
         if (confirmedPlayers.length === 5) {
           console.log('Stopping from withing dummy');
