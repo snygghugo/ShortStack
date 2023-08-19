@@ -114,14 +114,18 @@ export const setUp = async (
   );
   confirmedPlayersWithoutDummies.forEach(p => partyThread.members.add(p.user));
   if (confirmedPlayers.length === 5) {
-    console.log('Confirmed players are already five, skipping ahead');
     await dotaMessage.edit({
-      content: 'Setting up ready check...',
-      components: [],
-      embeds: [],
+      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+      components: [createButtonRow(READY_TO_READY_BUTTON)],
     });
-    readyChecker(confirmedPlayers, dotaMessage, partyThread);
-    return;
+    // console.log('Confirmed players are already five, skipping ahead');
+    // await dotaMessage.edit({
+    //   content: 'Setting up ready check...',
+    //   components: [],
+    //   embeds: [],
+    // });
+    // readyChecker(confirmedPlayers, dotaMessage, partyThread);
+    // return;
   }
 
   const filter = (i: CollectedMessageInteraction) =>
@@ -391,7 +395,7 @@ async function redoCollector(
     i.message?.id === partyMessage.id && i.customId === REDO_BUTTON.btnId;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
-    time: FIVEMINUTES * 1000,
+    time: FIVEMINUTES * 3 * 1000,
     max: 1,
     componentType: ComponentType.Button,
   });
@@ -407,10 +411,7 @@ async function redoCollector(
       });
       return;
     }
-    console.log(
-      'endreason was something other than time, next code should fire off without issue'
-    );
-    readyChecker(confirmedPlayers, partyMessage, partyThread);
+    await readyChecker(confirmedPlayers, partyMessage, partyThread);
     return;
   });
 }

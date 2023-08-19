@@ -112,6 +112,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
           .join('\n'),
         inline: true,
       },
+      BLANK_FIELD_INLINE,
       {
         name: BLANK,
         value: readyArray.map(({ ready }) => (ready ? '✅' : '❌')).join('\n'),
