@@ -3,6 +3,7 @@ import Canvas from '@napi-rs/canvas';
 import { request } from 'undici';
 import { PlayerObject } from '../../utils/types';
 import { BLANK } from '../../utils/textContent';
+import { BLANK_FIELD_INLINE } from '../../utils/consts';
 
 const artTime = async (
   playerArray: PlayerObject[],
@@ -113,6 +114,7 @@ export const stackEmbed = async (
           value: nameField,
           inline: true,
         },
+        BLANK_FIELD_INLINE,
         { name: BLANK, value: positionField, inline: true },
       ],
       image: {
@@ -132,6 +134,7 @@ export const stackEmbed = async (
         value: nameField,
         inline: true,
       },
+      BLANK_FIELD_INLINE,
       { name: BLANK, value: positionField, inline: true },
     ],
     image: {
