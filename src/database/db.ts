@@ -13,6 +13,7 @@ export const getGuildFromDb = async (guildId: string) => {
   const existingGuild = await MongoGuild.findOne({ guildId });
   if (!existingGuild) {
     const newGuild = new MongoGuild({ guildId });
+    newGuild.strictPicking = false;
     await newGuild.save();
     return newGuild;
   }
