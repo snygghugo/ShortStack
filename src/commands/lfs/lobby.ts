@@ -118,14 +118,6 @@ export const setUp = async (
       embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
       components: [createButtonRow(READY_TO_READY_BUTTON)],
     });
-    // console.log('Confirmed players are already five, skipping ahead');
-    // await dotaMessage.edit({
-    //   content: 'Setting up ready check...',
-    //   components: [],
-    //   embeds: [],
-    // });
-    // readyChecker(confirmedPlayers, dotaMessage, partyThread);
-    // return;
   }
 
   const filter = (i: CollectedMessageInteraction) =>
@@ -153,13 +145,7 @@ export const setUp = async (
               embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
               components: [createButtonRow(READY_TO_READY_BUTTON)],
             });
-
-            console.log(
-              "That's enough! Stopping the collector from within the case buttonOptions.in"
-            );
-            // collector.stop(
-            //   "That's enough! Collector is stopped from the switch case buttonOptions.in"
-            // );
+            console.log('Stopping from', STACK_BUTTONS.join.btnId);
           }
         }
         break;

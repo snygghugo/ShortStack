@@ -1,5 +1,5 @@
-//TODO: CHECK PERMISSION TO PING EVERYONE - OTHER ALTERNATIVES?
-
+//TODO: Write getters instead of manually removing "undefined"/"null" from all the discord responses
+//Refactor everything in the /lfs switch case so that everything is a handler instead
 import { ChannelType, Client, Collection, GatewayIntentBits } from 'discord.js';
 import { connect } from 'mongoose';
 import fs from 'node:fs';

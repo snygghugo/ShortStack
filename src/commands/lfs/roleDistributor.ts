@@ -1,51 +1,76 @@
 import { ConfirmedPlayer } from '../../utils/types';
+const confirmedTesters = [
+  // {
+  //   user: {
+  //     name: 'Tester1',
+  //     id: 'Tester1',
+  //     username: 'Tester1',
+  //     user: { username: 'Tester1' },
+  //     displayAvatarURL: () => 'https://laggan.online/abb.png',
+  //     isDummy: true,
+  //   },
+  //   nickname: 'Tester1',
+  //   preferences: ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'],
+  // },
+  {
+    user: {
+      name: 'Tester2',
+      id: 'Tester2',
+      username: 'Tester2',
+      user: { username: 'Tester2' },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    },
+    nickname: 'Tester2',
+    preferences: ['pos2'],
+  },
+  {
+    user: {
+      name: 'Tester54',
+      id: 'Tester54',
+      username: 'Tester54',
+      user: { username: 'Tester54' },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    },
+    nickname: 'Tester54',
+    preferences: ['pos5', 'pos4'],
+  },
+  {
+    user: {
+      name: 'Tester543',
+      id: 'Tester543',
+      username: 'Tester543',
+      user: { username: 'Tester543' },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    },
+    nickname: 'Tester543',
+    preferences: ['pos5', 'pos4', 'pos3'],
+  },
+  {
+    user: {
+      name: 'Tester45',
+      id: 'Tester45',
+      username: 'Tester45',
+      user: { username: 'Tester45' },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    },
+    nickname: 'Tester45',
+    preferences: ['pos4', 'pos5'],
+  },
+];
 
-export const figureItOut = () => {
-  const confirmedCopy = [
-    {
-      user: {
-        name: 'Tester',
-        id: 'Tester',
-        username: 'Tester',
-        user: { username: 'Tester' },
-        displayAvatarURL: () => 'https://laggan.online/abb.png',
-        isDummy: true,
-      },
-      nickname: 'Tester',
-      preferences: ['pos5', 'pos4'],
-    },
-    {
-      user: {
-        name: 'Tester2',
-        id: 'Tester',
-        username: 'Tester',
-        user: { username: 'Tester' },
-        displayAvatarURL: () => 'https://laggan.online/abb.png',
-        isDummy: true,
-      },
-      nickname: 'Tester',
-      preferences: ['pos4', 'pos5'],
-    },
-    {
-      user: {
-        name: 'Tester3',
-        id: 'Tester',
-        username: 'Tester',
-        user: { username: 'Tester' },
-        displayAvatarURL: () => 'https://laggan.online/abb.png',
-        isDummy: true,
-      },
-      nickname: 'Tester',
-      preferences: ['pos5', 'pos4', 'pos3'],
-    },
-  ];
+export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
   type ParticularPlayer = {
     id: string;
     preferences: string[];
     preferenceWeight: number;
   };
-  const particularPlayers: ParticularPlayer[] = confirmedCopy
-    .filter(({ preferences }) => preferences.length !== 5)
+
+  const particularPlayers: ParticularPlayer[] = confirmedPlayers
+    // .filter(({ preferences }) => preferences.length !== 5)
     .map(({ preferences, user }) => ({
       id: user.id,
       preferences,
@@ -67,31 +92,42 @@ export const figureItOut = () => {
     { role: 'pos5', potentialPlayers: [], restrictedTo: [], carriedWeight: 0 },
   ];
 
-  particularPlayers.forEach(player => {
-    if (player.preferences.length === 1) {
-      console.log('VERY picky player');
-      roles;
-    }
-  });
   //IF THERE ARE TWO PLAYERS WHO ONLY PLAY THE SAME TWO ROLES, THOSE ROLES SHOULD BE UNAVAILABLE FOR ANYONE ELSE
+  // ^Check!^
 
-  //IF ONE PERSON ONLY HAS ONE ROLE AS PREFERENCE, THE NEXT PERSON SHOULD HAVE ALL THE OTHER ROLES AS PREFERENCE
+  roles.forEach(role => {
+    const prospectiveTakers = particularPlayers.filter(({ preferences }) =>
+      preferences.includes(role.role)
+    );
+    console.log('this is prospective takers', prospectiveTakers);
+    const sortedProspectiveTakers = prospectiveTakers.sort(
+      ({ preferenceWeight: a }, { preferenceWeight: b }) => b - a
+    );
 
-  roles; //DO THE LOGIC HERE INSTEAD
-
-  //THIS SHOULD BE REVERSED, IT SHOULD BE ROLES DOING THE LOGIC
-  particularPlayers.forEach(player => {
-    console.log('thiis is preference weight', player.preferenceWeight);
-    player.preferences.forEach(preference => {
-      const foundPreference = roles.find(({ role }) => role === preference);
-      if (foundPreference) {
-        foundPreference.potentialPlayers.push(player.id);
-        foundPreference.carriedWeight += player.preferenceWeight;
+    const playersToRestrict: ParticularPlayer[] = [];
+    for (let i = 0; i < sortedProspectiveTakers.length; i++) {
+      const prospectiveTaker = sortedProspectiveTakers[i];
+      console.log('Carried weight is', role.carriedWeight);
+      if (!(role.carriedWeight + prospectiveTaker.preferenceWeight > 1)) {
+        console.log(
+          `Adding the cw ${role.carriedWeight} to the weight ${prospectiveTaker.preferenceWeight} from ${prospectiveTaker.id}`
+        );
+        role.carriedWeight += prospectiveTaker.preferenceWeight;
+        role.potentialPlayers.push(prospectiveTaker.id);
+        if (role.carriedWeight >= 1) {
+          role.restrictedTo = [...role.potentialPlayers];
+          role.potentialPlayers = [];
+        }
       }
-    });
+    }
+    console.log('Carried weight after the loop', role.carriedWeight);
   });
-
   console.log(roles);
+  const undesiredRoles = roles.filter(
+    ({ potentialPlayers, restrictedTo }) =>
+      potentialPlayers.length === 0 && restrictedTo.length === 0
+  );
+  console.log('These are undesired roles', undesiredRoles);
 };
 
-figureItOut();
+figureItOut(confirmedTesters);

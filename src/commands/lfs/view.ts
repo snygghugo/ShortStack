@@ -110,7 +110,11 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
       BLANK_FIELD_INLINE,
       {
         name: BLANK,
-        value: readyArray.map(({ ready }) => (ready ? '✅' : '❌')).join('\n'),
+        value: readyArray
+          .map(({ ready, pickTime }) =>
+            ready ? `✅ \`readied in ${pickTime}\`` : '❌'
+          )
+          .join('\n'),
         inline: true,
       },
     ],
