@@ -4,9 +4,9 @@ import {
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
-import { getChannel } from '../utils/generalUtilities';
 import { invokeMessageCollector } from './queue/queueing';
 import { QUEUE_OPTIONS } from '../utils/consts';
+import { getGuildId, getChannel } from '../utils/getters';
 
 export const data = new SlashCommandBuilder()
   .setName('queue')
@@ -42,8 +42,7 @@ export const data = new SlashCommandBuilder()
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   const type = interaction.options.getSubcommand();
-  const guildId = interaction.guildId;
-  if (!guildId) throw new Error('GuildID is falsy!');
+  const guildId = getGuildId(interaction);
   const guildSettings = await getGuildFromDb(guildId);
   switch (type) {
     case QUEUE_OPTIONS.join:
@@ -68,7 +67,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       if (guildSettings.queue.length < 1)
         return interaction.reply('Queue is empty!');
       const invokeesNeeded = interaction.options.getNumber('invokees');
-      if (invokeesNeeded && invokeesNeeded > 0 && invokeesNeeded < 6) {
+      if (invokeesNeeded) {
         interaction.deferReply();
         interaction.deleteReply();
         const channel = await getChannel(

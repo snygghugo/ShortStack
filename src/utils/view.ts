@@ -1,7 +1,6 @@
 import { botMessages } from './textContent';
 import { ButtonBuilder, ActionRowBuilder, TextInputBuilder } from 'discord.js';
 import { BtnConfig } from './types';
-import { EMOJI_DICT } from './buttons/buttonConsts';
 import { parsePrefsForEmbed } from './generalUtilities';
 
 export const modalComponent = (reasonInput: TextInputBuilder) => {

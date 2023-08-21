@@ -7,6 +7,7 @@ import {
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
+import { getGuildId } from '../utils/getters';
 
 export const data = new SlashCommandBuilder()
   .setName('settings')
@@ -59,11 +60,11 @@ const throwIfNullOrUndefined = <Type>(
 };
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
-  if (!interaction.guildId) throw new Error('GuildId is falsy');
+  const guildId = getGuildId(interaction);
   const commandName = throwIfNullOrUndefined(
     interaction.options.getSubcommand()
   );
-  const guildSettings = await getGuildFromDb(interaction.guildId);
+  const guildSettings = await getGuildFromDb(guildId);
   let reply = 'Nothing was changed!';
 
   switch (commandName) {

@@ -1,6 +1,11 @@
-import { ButtonInteraction, ThreadChannel } from 'discord.js';
+import {
+  ButtonInteraction,
+  ThreadChannel,
+  ChatInputCommandInteraction,
+} from 'discord.js';
 import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 import { getUserPrefs } from '../../database/db';
+import { getNickname } from '../../utils/generalUtilities';
 
 export const createDummy = async (name: string, i: ButtonInteraction) => {
   const foundUser = (
@@ -77,4 +82,32 @@ export const pingMessage = async (
     }
   }
   reminders.forEach(async message => await message.delete());
+};
+
+export const createConfirmedPlayers = async (
+  interaction: ChatInputCommandInteraction
+) => {
+  const confirmedPlayers: ConfirmedPlayer[] = [];
+  const originatingPlayer = {
+    user: interaction.user,
+    preferences: await getUserPrefs(interaction.user.id),
+    nickname: await getNickname(interaction, interaction.user),
+  };
+  confirmedPlayers.push(originatingPlayer);
+  //It's a 2 because I arbitrarily start at p2 because p2 would be the 2nd person in the Dota party
+  for (let i = 2; i < 7; i++) {
+    const additionalUser = interaction.options.getUser('p' + i);
+    if (additionalUser) {
+      if (confirmedPlayers.some(cP => cP.user.id === additionalUser.id)) {
+        return;
+      }
+      const additionalPlayer = {
+        user: additionalUser,
+        preferences: await getUserPrefs(additionalUser.id),
+        nickname: await getNickname(interaction, additionalUser),
+      };
+      confirmedPlayers.push(additionalPlayer);
+    }
+  }
+  return confirmedPlayers;
 };

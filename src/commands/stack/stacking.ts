@@ -8,14 +8,21 @@ import {
 } from 'discord.js';
 import { PlayerObject } from '../../utils/types';
 import {
-  getChannel,
   getNameWithPing,
   shuffle,
+  pThreadCreator,
 } from '../../utils/generalUtilities';
 import { getGuildFromDb } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 import { Canvas } from '@napi-rs/canvas';
-import { strictPicking } from './utilities';
+import {
+  appropriateRole,
+  availableRoles,
+  getTimestampInSeconds,
+  strictPicking,
+  whosNext,
+} from './utilities';
+import { getGuildId, getChannel } from '../../utils/getters';
 
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
@@ -24,20 +31,15 @@ export const stackSetup = async (
   oldMessage?: Message<true>
 ) => {
   interaction.deferReply();
-  if (!interaction.guildId) throw new Error('GuildId Issues');
-  const guildSettings = await getGuildFromDb(interaction.guildId);
+  const guildId = getGuildId(interaction);
+  const guildSettings = await getGuildFromDb(guildId);
   const isStrictPicking = guildSettings.strictPicking;
   const channel = await getChannel(guildSettings.yaposChannel, interaction);
-  // const channel = await getChannelFromSettings(interaction, 'dota');
   const message = oldMessage || (await channel.send('Setting up shop...'));
   if (!oldMessage) {
-    await message.startThread({
-      name: `🍹${interaction.user.username}'s Pre-Game Lounge 🍹`,
-      autoArchiveDuration: 60,
-      reason: 'Time for stack!',
-    });
+    await pThreadCreator(interaction, message);
   }
-  interaction.deleteReply();
+  await interaction.deleteReply();
   stackExecute(playerArray, message, pickTime, interaction, isStrictPicking);
 };
 
@@ -145,43 +147,3 @@ const stackExecute = async (
     }
   });
 };
-
-const whosNext = (playerArray: PlayerObject[]): PlayerObject | null => {
-  const unpickedPlayer = playerArray.find(player => !player.position);
-  if (unpickedPlayer) {
-    unpickedPlayer.position = '👈';
-    return unpickedPlayer;
-  }
-  const filledPlayer = playerArray.findLast(
-    player => player.position === 'fill'
-  );
-  if (filledPlayer) {
-    filledPlayer.position = '👈';
-    filledPlayer.fillFlag = true;
-    return filledPlayer;
-  }
-  return null;
-};
-
-function appropriateRole(available: string[], nextUp: PlayerObject) {
-  const foundPreference = nextUp.preferences.find(preference =>
-    available.includes(preference)
-  );
-  if (foundPreference) return foundPreference;
-  if (!nextUp.fillFlag) return 'fill';
-  return shuffle(available)[0];
-}
-
-function getTimestampInSeconds() {
-  return Math.floor(Date.now() / 1000);
-}
-
-function availableRoles(playerArray: PlayerObject[]) {
-  const standardRoles = ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'];
-  for (const player of playerArray) {
-    if (player.position.startsWith('pos')) {
-      standardRoles.splice(standardRoles.indexOf(player.position), 1);
-    }
-  }
-  return standardRoles;
-}

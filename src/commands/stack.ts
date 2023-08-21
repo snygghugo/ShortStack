@@ -7,18 +7,16 @@ import { getNickname, shuffle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getUserPrefs } from '../database/db';
 import { PlayerObject } from '../utils/types';
+import { getUserFromInteractionOptions } from '../utils/getters';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;
 
 const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
   const playerArray: PlayerObject[] = [];
-  if (!interaction.guildId) return playerArray;
-
   for (let i = 1; i < DOTA_PARTY_SIZE + 1; i++) {
     try {
-      const userToAdd = interaction.options.getUser('p' + i);
-      if (!userToAdd) throw new Error('Unable to find user!');
+      const userToAdd = getUserFromInteractionOptions(interaction, 'p' + i);
       if (playerArray.some(({ user }) => user.id === userToAdd.id)) {
         interaction.reply('Please provide 5 unique players!');
         return;

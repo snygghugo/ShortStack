@@ -1,46 +1,13 @@
 import {
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
+  AnyThreadChannel,
   ChatInputCommandInteraction,
   CollectedInteraction,
   CollectedMessageInteraction,
-  Message,
-  AnyThreadChannel,
-  ButtonInteraction,
   ComponentType,
+  Message,
   User,
 } from 'discord.js';
-import {
-  removeFromArray,
-  getTimestamp,
-  forceReady,
-  everyoneReady,
-  pingMessage,
-  createDummy,
-} from './utilities';
-import { createButtonRow, modalComponent } from '../../utils/view';
-import {
-  readyEmbed,
-  lobbyEmbed as lobbyEmbed,
-  inOutBut,
-  rdyButtons,
-} from './view';
-import { stackSetup } from '../stack/stacking';
-import {
-  ConditionalPlayer,
-  ConfirmedPlayer,
-  PlayerObject,
-} from '../../utils/types';
-import { shuffle, getNickname, getChannel } from '../../utils/generalUtilities';
 import { getGuildFromDb, getUserPrefs } from '../../database/db';
-import {
-  ONEHOUR,
-  READYTIME,
-  FIVEMINUTES,
-  STANDARD_TIME,
-} from '../../utils/consts';
-import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 import {
   READY_BUTTONS,
   READY_TO_READY_BUTTON,
@@ -48,44 +15,44 @@ import {
   STACK_BUTTONS,
   STACK_IT_BUTTON,
 } from '../../utils/buttons/buttonConsts';
-import { figureItOut } from './roleDistributor';
-
-export const createConfirmedPlayers = async (
-  interaction: ChatInputCommandInteraction
-) => {
-  const confirmedPlayers: ConfirmedPlayer[] = [];
-  const originatingPlayer = {
-    user: interaction.user,
-    preferences: await getUserPrefs(interaction.user.id),
-    nickname: await getNickname(interaction, interaction.user),
-  };
-  confirmedPlayers.push(originatingPlayer);
-  //It's a 2 because I arbitrarily start at p2 because p2 would be the 2nd person in the Dota party
-  for (let i = 2; i < 7; i++) {
-    const additionalUser = interaction.options.getUser('p' + i);
-    if (additionalUser) {
-      if (confirmedPlayers.some(cP => cP.user.id === additionalUser.id)) {
-        return;
-      }
-      const additionalPlayer = {
-        user: additionalUser,
-        preferences: await getUserPrefs(additionalUser.id),
-        nickname: await getNickname(interaction, additionalUser),
-      };
-      confirmedPlayers.push(additionalPlayer);
-    }
-  }
-  return confirmedPlayers;
-};
+import {
+  FIVEMINUTES,
+  ONEHOUR,
+  READYTIME,
+  STANDARD_TIME,
+} from '../../utils/consts';
+import {
+  pThreadCreator,
+  getNickname,
+  shuffle,
+} from '../../utils/generalUtilities';
+import { getGuildId, getChannel } from '../../utils/getters';
+import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
+import {
+  ConditionalPlayer,
+  ConfirmedPlayer,
+  PlayerObject,
+} from '../../utils/types';
+import { createButtonRow } from '../../utils/view';
+import { stackSetup } from '../stack/stacking';
+import {
+  createDummy,
+  everyoneReady,
+  forceReady,
+  getTimestamp,
+  pingMessage,
+  removeFromArray,
+} from './utilities';
+import { getDummyNameModal, condiModal } from './modals';
+import { createStackButtons, lobbyEmbed, rdyButtons, readyEmbed } from './view';
 
 export const setUp = async (
   interaction: ChatInputCommandInteraction,
   confirmedPlayers: ConfirmedPlayer[]
 ) => {
-  if (!interaction.guildId)
-    throw new Error('Somehow there is a lacking GuildId in setUp!');
+  const guildId = getGuildId(interaction);
   const condiPlayers: ConditionalPlayer[] = [];
-  const guildSettings = await getGuildFromDb(interaction.guildId);
+  const guildSettings = await getGuildFromDb(guildId);
   const roleCall = guildSettings.yaposRole
     ? `<@&${guildSettings.yaposRole}>`
     : 'Dota Lovers';
@@ -102,9 +69,9 @@ export const setUp = async (
       roleCall,
       time + timeLimit,
       guildSettings.queue
-    ), //this will later be messageContent
+    ),
     embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
-    components: inOutBut(),
+    components: createStackButtons(),
   };
   const dotaChannel = await getChannel(guildSettings.yaposChannel, interaction);
   const dotaMessage = await dotaChannel.send(setUpMessage);
@@ -194,6 +161,7 @@ export const setUp = async (
         }
         if (!modalInteraction.isFromMessage())
           throw new Error('Somehow modalInteraction is not from message');
+
         const dummyName =
           modalInteraction.fields.getTextInputValue('dummyName');
         if (!dummyName) break;
@@ -373,7 +341,7 @@ const readyChecker = async (
       content: finalMessageContent(collected),
       components: [stackButton],
     });
-    await stackIt(partyMessage, confirmedPlayers, partyThread);
+    await stackIt(partyMessage, confirmedPlayers);
   });
 };
 
@@ -406,23 +374,10 @@ async function redoCollector(
     return;
   });
 }
-const pThreadCreator = async (
-  interaction: ChatInputCommandInteraction,
-  dotaMessage: Message
-) => {
-  const creatorName = await getNickname(interaction, interaction.user);
-  const partyThread = await dotaMessage.startThread({
-    name: `🍹${creatorName}'s Pre-Game Lounge 🍹`,
-    autoArchiveDuration: 60,
-    reason: 'Time for stack!',
-  });
-  return partyThread;
-};
 
 async function stackIt(
   message: Message<true>,
-  confirmedPlayers: ConfirmedPlayer[],
-  partyThread?: AnyThreadChannel
+  confirmedPlayers: ConfirmedPlayer[]
 ) {
   const filter = (i: CollectedInteraction) =>
     i.message?.id === message.id && i.customId === STACK_IT_BUTTON.btnId;
@@ -466,55 +421,4 @@ async function stackIt(
     const shuffledPlayerArray = shuffle(playerArray);
     await stackSetup(interaction, shuffledPlayerArray, STANDARD_TIME, message);
   });
-}
-
-export const getDummyNameModal = async (interaction: ButtonInteraction) => {
-  //this is  a little busy
-  const uniqueId = Date.now().toString();
-  const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
-  const avatarInput = new TextInputBuilder()
-    .setCustomId('dummyName')
-    .setLabel('Who are you reserving a spot for?')
-    .setPlaceholder('This spot is for...')
-    .setMaxLength(25)
-    .setStyle(TextInputStyle.Short);
-  const modalInput = modalComponent(avatarInput);
-  modal.addComponents(modalInput);
-  await interaction.showModal(modal);
-  const submitted = await interaction
-    .awaitModalSubmit({
-      time: READYTIME * 1000,
-      filter: i => i.user.id === interaction.user.id && i.customId === uniqueId,
-    })
-    .catch(error => {
-      console.log('This is inside the modal error thing');
-      console.error(error);
-      return null;
-    });
-  return submitted;
-};
-
-async function condiModal(interaction: ButtonInteraction) {
-  //this is  a little busy
-  const uniqueId = Date.now().toString();
-  const modal = new ModalBuilder().setCustomId(uniqueId).setTitle('Ok, buddy');
-  const reasonInput = new TextInputBuilder()
-    .setCustomId('reason')
-    .setLabel("What's the holdup? Include ETA")
-    .setPlaceholder("Describe what's stopping you from being IN RIGHT NOW")
-    .setMaxLength(140)
-    .setStyle(TextInputStyle.Short);
-  const modalInput = modalComponent(reasonInput);
-  modal.addComponents(modalInput);
-  await interaction.showModal(modal);
-  const submitted = await interaction
-    .awaitModalSubmit({
-      time: READYTIME * 1000,
-      filter: i => i.user.id === interaction.user.id && i.customId === uniqueId,
-    })
-    .catch(error => {
-      console.error(error);
-      return null;
-    });
-  return submitted;
 }

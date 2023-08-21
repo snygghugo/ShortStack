@@ -1,8 +1,9 @@
 import {
-  User,
-  ChatInputCommandInteraction,
   ButtonInteraction,
   ChannelType,
+  ChatInputCommandInteraction,
+  User,
+  Message,
 } from 'discord.js';
 import { Dummy } from './types';
 
@@ -31,11 +32,6 @@ export const getNameWithPing = (user: User | Dummy) => {
     return `@${user.id}`;
   }
   return user;
-};
-
-export const tsCompliantIncludes = (array: any[], x: any) => {
-  if (!x) return false;
-  return array.includes(x);
 };
 
 export const getNickname = async (
@@ -92,4 +88,17 @@ export const parsePrefsForEmbed = (pos: string) => {
     default:
       return 'No /preferences set!';
   }
+};
+
+export const pThreadCreator = async (
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  dotaMessage: Message
+) => {
+  const creatorName = await getNickname(interaction, interaction.user);
+  const partyThread = await dotaMessage.startThread({
+    name: `🍹${creatorName}'s Pre-Game Lounge 🍹`,
+    autoArchiveDuration: 60,
+    reason: 'Time for stack!',
+  });
+  return partyThread;
 };

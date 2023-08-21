@@ -22,7 +22,7 @@ import {
 import { READY_BUTTONS, STACK_BUTTONS } from '../../utils/buttons/buttonConsts';
 import { figureItOut } from './roleDistributor';
 
-export const inOutBut = () => {
+export const createStackButtons = () => {
   const { join, leave, dummy, condi } = STACK_BUTTONS;
   const row1 = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(createButton(join))
