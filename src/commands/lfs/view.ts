@@ -62,7 +62,10 @@ export const lobbyEmbed = (
   const preferencesFields = [];
   const embedFields = [];
 
-  if (undesiredRoles.length || restrictedRoles.length) {
+  if (
+    confirmedPlayers.length &&
+    (undesiredRoles.length || restrictedRoles.length)
+  ) {
     console.log('These are undesired roles', undesiredRoles);
     console.log('These are restrictedRoles', restrictedRoles);
     embedFields.push(
