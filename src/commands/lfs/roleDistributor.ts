@@ -1,4 +1,5 @@
-import { ConfirmedPlayer } from '../../utils/types';
+import { User } from 'discord.js';
+import { ConfirmedPlayer, Dummy } from '../../utils/types';
 const confirmedTesters = [
   // {
   //   user: {
@@ -65,6 +66,7 @@ const confirmedTesters = [
 export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
   type ParticularPlayer = {
     id: string;
+    user: User | Dummy;
     preferences: string[];
     preferenceWeight: number;
   };
@@ -72,6 +74,7 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
   const particularPlayers: ParticularPlayer[] = confirmedPlayers.map(
     ({ preferences, user }) => ({
       id: user.id,
+      user,
       preferences,
       preferenceWeight: 1 / preferences.length,
     })
@@ -79,8 +82,8 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
 
   type Role = {
     role: string;
-    potentialPlayers: string[];
-    restrictedTo: string[];
+    potentialPlayers: (User | Dummy)[];
+    restrictedTo: (User | Dummy)[];
     carriedWeight: number;
   };
 
@@ -106,10 +109,10 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
       const prospectiveTaker = sortedProspectiveTakers[i];
       if (!(role.carriedWeight + prospectiveTaker.preferenceWeight > 1)) {
         console.log(
-          `Adding the cw ${role.carriedWeight} to the weight ${prospectiveTaker.preferenceWeight} from ${prospectiveTaker.id}`
+          `Adding the cw ${role.carriedWeight} to the weight ${prospectiveTaker.preferenceWeight} from ${prospectiveTaker.user.username}`
         );
         role.carriedWeight += prospectiveTaker.preferenceWeight;
-        role.potentialPlayers.push(prospectiveTaker.id);
+        role.potentialPlayers.push(prospectiveTaker.user);
         if (role.carriedWeight >= 1) {
           role.restrictedTo = [...role.potentialPlayers];
           role.potentialPlayers = [];
