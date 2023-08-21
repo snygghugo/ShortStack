@@ -9,11 +9,11 @@ export const PICKING_ORDER = `\`\`\`${' '.repeat(
 export const botMessages = {
   rolePrefTitle: 'Your Dota 2 Role Preferences',
   rolePrefFieldTitle:
-    'Please click the reactions below to indicate your role preferences',
+    'Use the buttons to indicate your preferences, from most to least preferred role',
   rolePrefFieldValue: 'Please select your most preferred role',
 };
 
-export const roleCallEmbedStrings = {
+export const lobbyEmbedStrings = {
   open: `${`\`\`Open slot\`\``}`,
   dotaQuery: "*Who's up for Dota?*",
   condiHeading: '*Conditionally In*',

@@ -71,7 +71,7 @@ export const pingMessage = async (
   for (let player of readyArray) {
     if (!player.ready) {
       const gentleReminder = await partyThread.send(
-        `${player.gamer.toString()} hurry up, we're waiting!`
+        `${player.user.toString()} hurry up, we're waiting!`
       );
       reminders.push(gentleReminder);
     }

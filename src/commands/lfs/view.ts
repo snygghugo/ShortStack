@@ -11,7 +11,7 @@ import {
 } from '../../utils/consts';
 import { createButton } from '../../utils/view';
 import {
-  roleCallEmbedStrings,
+  lobbyEmbedStrings,
   readyEmbedStrings,
   BLANK,
 } from '../../utils/textContent';
@@ -20,6 +20,7 @@ import {
   parsePrefsForEmbed,
 } from '../../utils/generalUtilities';
 import { READY_BUTTONS, STACK_BUTTONS } from '../../utils/buttons/buttonConsts';
+import { figureItOut } from './roleDistributor';
 
 export const inOutBut = () => {
   const { join, leave, dummy, condi } = STACK_BUTTONS;
@@ -44,14 +45,48 @@ export const rdyButtons = () => {
   return [buttonRow, row2];
 };
 
-export const roleCallEmbed = (
+export const lobbyEmbed = (
   confirmedPlayers: ConfirmedPlayer[],
   condiPlayers: ConditionalPlayer[]
 ) => {
-  const { open, dotaQuery, condiHeading } = roleCallEmbedStrings;
+  const { open, dotaQuery, condiHeading } = lobbyEmbedStrings;
+  const roles = figureItOut(confirmedPlayers);
+  const undesiredRoles = roles.filter(
+    ({ potentialPlayers, restrictedTo }) =>
+      potentialPlayers.length === 0 && restrictedTo.length === 0
+  );
+  const restrictedRoles = roles.filter(
+    ({ restrictedTo }) => restrictedTo.length
+  );
+
   const maxLength = 5;
   const playerFields = [];
   const preferencesFields = [];
+  const embedFields = [];
+
+  if (undesiredRoles.length || restrictedRoles.length) {
+    console.log('These are undesired roles', undesiredRoles);
+    console.log('These are restrictedRoles', restrictedRoles);
+    embedFields.push(
+      {
+        name: '**Needed** roles',
+        value: undesiredRoles.map(({ role }) => role).join('\n'),
+        inline: true,
+      },
+      BLANK_FIELD_INLINE,
+      {
+        name: 'Restricted roles',
+        value: restrictedRoles
+          .map(
+            ({ role, restrictedTo }) =>
+              `${role}, restricted to ${restrictedTo.join(' & ')}`
+          )
+          .join('\n'),
+        inline: true,
+      },
+      BLANK_FIELD
+    );
+  }
 
   for (let i = 0; i < maxLength; i++) {
     const player = confirmedPlayers[i];
@@ -65,15 +100,15 @@ export const roleCallEmbed = (
     }
   }
 
-  const embedFields = [
+  embedFields.push(
     { name: dotaQuery, value: playerFields.join('\n'), inline: true },
     BLANK_FIELD_INLINE,
     {
       name: '*Preferences*',
       value: preferencesFields.join('\n'),
       inline: true,
-    },
-  ];
+    }
+  );
 
   if (condiPlayers.length > 0) {
     const conditionalFields = condiPlayers.map(
@@ -103,7 +138,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
       {
         name: readyHeading,
         value: readyArray
-          .map(({ gamer }) => getNameWithPing(gamer).toString())
+          .map(({ user }) => getNameWithPing(user).toString())
           .join('\n'),
         inline: true,
       },
@@ -112,7 +147,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
         name: BLANK,
         value: readyArray
           .map(({ ready, pickTime }) =>
-            ready ? `✅ \`readied in ${pickTime}\`` : '❌'
+            ready ? `✅ \`readied in ${pickTime / 1000}\`` : '❌'
           )
           .join('\n'),
         inline: true,

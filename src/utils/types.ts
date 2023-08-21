@@ -31,7 +31,7 @@ export type Dummy = {
 };
 
 export type PlayerToReady = {
-  gamer: User | Dummy;
+  user: User | Dummy;
   ready: boolean;
   pickTime: number;
 };

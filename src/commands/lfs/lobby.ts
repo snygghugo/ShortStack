@@ -10,7 +10,6 @@ import {
   ButtonInteraction,
   ComponentType,
   User,
-  ButtonStyle,
 } from 'discord.js';
 import {
   removeFromArray,
@@ -21,7 +20,12 @@ import {
   createDummy,
 } from './utilities';
 import { createButtonRow, modalComponent } from '../../utils/view';
-import { readyEmbed, roleCallEmbed, inOutBut, rdyButtons } from './view';
+import {
+  readyEmbed,
+  lobbyEmbed as lobbyEmbed,
+  inOutBut,
+  rdyButtons,
+} from './view';
 import { stackSetup } from '../stack/stacking';
 import {
   ConditionalPlayer,
@@ -99,12 +103,11 @@ export const setUp = async (
       time + timeLimit,
       guildSettings.queue
     ), //this will later be messageContent
-    embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+    embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
     components: inOutBut(),
   };
   const dotaChannel = await getChannel(guildSettings.yaposChannel, interaction);
   const dotaMessage = await dotaChannel.send(setUpMessage);
-  if (!dotaMessage) throw new Error("Couldn't set up new Dota Message");
   guildSettings.queue = [];
   await guildSettings.save();
   const partyThread = await pThreadCreator(interaction, dotaMessage);
@@ -115,7 +118,7 @@ export const setUp = async (
   confirmedPlayersWithoutDummies.forEach(p => partyThread.members.add(p.user));
   if (confirmedPlayers.length === 5) {
     await dotaMessage.edit({
-      embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+      embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
       components: [createButtonRow(READY_TO_READY_BUTTON)],
     });
   }
@@ -142,7 +145,7 @@ export const setUp = async (
           await partyThread.members.add(i.user);
           if (confirmedPlayers.length === 5) {
             await i.update({
-              embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+              embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
               components: [createButtonRow(READY_TO_READY_BUTTON)],
             });
             console.log('Stopping from', STACK_BUTTONS.join.btnId);
@@ -175,7 +178,7 @@ export const setUp = async (
           });
           removeFromArray(confirmedPlayers, i);
           await modalInteraction.update({
-            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+            embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
           });
         }
         break;
@@ -212,14 +215,13 @@ export const setUp = async (
         if (confirmedPlayers.length === 5) {
           console.log('Stopping from withing dummy');
           await modalInteraction.update({
-            embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+            embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
             components: [createButtonRow(READY_TO_READY_BUTTON)],
           });
           break;
-          // collector.stop('capacity');
         }
         await modalInteraction.update({
-          embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+          embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
         });
         break;
 
@@ -234,7 +236,7 @@ export const setUp = async (
     }
     if (!i.replied) {
       await i.update({
-        embeds: [roleCallEmbed(confirmedPlayers, condiPlayers)],
+        embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
       });
     }
   });
@@ -273,8 +275,8 @@ const readyChecker = async (
     stoppedMessageContent,
     finalMessageContent,
   } = readyCheckerStrings;
-  const readyArray = confirmedPlayers.map(({ user: player }) => ({
-    gamer: player,
+  const readyArray = confirmedPlayers.map(({ user }) => ({
+    user,
     ready: false,
     pickTime: 0,
   }));
@@ -301,7 +303,7 @@ const readyChecker = async (
     switch (i.customId) {
       case READY_BUTTONS.rdy.btnId:
         const player = readyArray.find(
-          e => e.gamer.id === i.user.id && e.ready === false
+          e => e.user.id === i.user.id && e.ready === false
         );
         if (player) {
           player.ready = true;
@@ -433,11 +435,6 @@ async function stackIt(
   collector.on('collect', async i => {});
 
   collector.on('end', async collected => {
-    // Gör ljud när du stackar
-    // ljudGöraren.ljudGöraren(
-    //   userToMember(confirmedPlayers, message),
-    //   (shouldWeStackIt = true)
-    // );
     await message.edit({ components: [] });
     const interaction = collected.last();
     if (!interaction) {

@@ -69,13 +69,13 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
     preferenceWeight: number;
   };
 
-  const particularPlayers: ParticularPlayer[] = confirmedPlayers
-    // .filter(({ preferences }) => preferences.length !== 5)
-    .map(({ preferences, user }) => ({
+  const particularPlayers: ParticularPlayer[] = confirmedPlayers.map(
+    ({ preferences, user }) => ({
       id: user.id,
       preferences,
       preferenceWeight: 1 / preferences.length,
-    }));
+    })
+  );
 
   type Role = {
     role: string;
@@ -99,15 +99,11 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
     const prospectiveTakers = particularPlayers.filter(({ preferences }) =>
       preferences.includes(role.role)
     );
-    console.log('this is prospective takers', prospectiveTakers);
     const sortedProspectiveTakers = prospectiveTakers.sort(
       ({ preferenceWeight: a }, { preferenceWeight: b }) => b - a
     );
-
-    const playersToRestrict: ParticularPlayer[] = [];
     for (let i = 0; i < sortedProspectiveTakers.length; i++) {
       const prospectiveTaker = sortedProspectiveTakers[i];
-      console.log('Carried weight is', role.carriedWeight);
       if (!(role.carriedWeight + prospectiveTaker.preferenceWeight > 1)) {
         console.log(
           `Adding the cw ${role.carriedWeight} to the weight ${prospectiveTaker.preferenceWeight} from ${prospectiveTaker.id}`
@@ -120,14 +116,6 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
         }
       }
     }
-    console.log('Carried weight after the loop', role.carriedWeight);
   });
-  console.log(roles);
-  const undesiredRoles = roles.filter(
-    ({ potentialPlayers, restrictedTo }) =>
-      potentialPlayers.length === 0 && restrictedTo.length === 0
-  );
-  console.log('These are undesired roles', undesiredRoles);
+  return roles;
 };
-
-figureItOut(confirmedTesters);

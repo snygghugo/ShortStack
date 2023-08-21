@@ -1,6 +1,8 @@
 import { botMessages } from './textContent';
 import { ButtonBuilder, ActionRowBuilder, TextInputBuilder } from 'discord.js';
 import { BtnConfig } from './types';
+import { EMOJI_DICT } from './buttons/buttonConsts';
+import { parsePrefsForEmbed } from './generalUtilities';
 
 export const modalComponent = (reasonInput: TextInputBuilder) => {
   return new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput);
@@ -22,11 +24,10 @@ export const createButtonRow = (btnConfig: BtnConfig) => {
 
 export const prefEmbedMaker = (chosenRoles?: string[]) => {
   let fieldTitle = botMessages.rolePrefFieldTitle;
-  if (chosenRoles?.length === 5) {
-    fieldTitle = 'This is your preference: ';
-  }
 
-  const valueField = chosenRoles?.join(' > ') || botMessages.rolePrefFieldValue;
+  const valueField =
+    chosenRoles?.map(parsePrefsForEmbed).join(' > ') ||
+    botMessages.rolePrefFieldValue;
   const embed = {
     color: 0x0099ff,
     title: botMessages.rolePrefTitle,

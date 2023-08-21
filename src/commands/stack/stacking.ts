@@ -116,7 +116,7 @@ const stackExecute = async (
       default:
         nextUp.position = i.customId;
     }
-    i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS, WITH RANDOM PHRASES
+    await i.update('Thinking...'); //MAKE A CUTE ARRAY FOR THIS, WITH RANDOM PHRASES
     collector.stop();
   });
 
@@ -178,9 +178,9 @@ function getTimestampInSeconds() {
 
 function availableRoles(playerArray: PlayerObject[]) {
   const standardRoles = ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'];
-  for (let object of playerArray) {
-    if (object.position.startsWith('pos')) {
-      standardRoles.splice(standardRoles.indexOf(object.position), 1);
+  for (const player of playerArray) {
+    if (player.position.startsWith('pos')) {
+      standardRoles.splice(standardRoles.indexOf(player.position), 1);
     }
   }
   return standardRoles;

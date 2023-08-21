@@ -1,9 +1,20 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, User } from 'discord.js';
+import {
+  ActionRow,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  User,
+} from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { request } from 'undici';
 import { PlayerObject } from '../../utils/types';
 import { BLANK } from '../../utils/textContent';
 import { BLANK_FIELD_INLINE } from '../../utils/consts';
+import { createButton } from '../../utils/view';
+import {
+  EMOJI_DICT,
+  PREFERENCE_BUTTONS,
+} from '../../utils/buttons/buttonConsts';
 
 const artTime = async (
   playerArray: PlayerObject[],
@@ -179,5 +190,22 @@ export const createRoleRows = (
         .setLabel('⁉️')
         .setStyle(ButtonStyle.Primary)
     );
+  return [row1, row2];
+};
+
+export const createPrefRows = (chosenRoles: string[]) => {
+  const { pos1, pos2, pos3, pos4, pos5, finish } = PREFERENCE_BUTTONS;
+  const standardRoles = Object.values(EMOJI_DICT);
+  const available = standardRoles.filter(role => !chosenRoles.includes(role));
+
+  const row1 = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(createRoleButton(pos1.btnId, pos1.btnText, available))
+    .addComponents(createRoleButton(pos2.btnId, pos2.btnText, available))
+    .addComponents(createRoleButton(pos3.btnId, pos3.btnText, available))
+    .addComponents(createRoleButton(pos4.btnId, pos4.btnText, available))
+    .addComponents(createRoleButton(pos5.btnId, pos5.btnText, available));
+  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    createButton(finish)
+  );
   return [row1, row2];
 };
