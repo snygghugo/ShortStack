@@ -7,11 +7,7 @@ import {
   CollectedInteraction,
 } from 'discord.js';
 import { PlayerObject } from '../../utils/types';
-import {
-  getNameWithPing,
-  shuffle,
-  pThreadCreator,
-} from '../../utils/generalUtilities';
+import { shuffle, pThreadCreator } from '../../utils/generalUtilities';
 import { getGuildFromDb } from '../../database/db';
 import { createRoleRows, stackEmbed } from './view';
 import { Canvas } from '@napi-rs/canvas';
@@ -22,7 +18,7 @@ import {
   strictPicking,
   whosNext,
 } from './utilities';
-import { getGuildId, getChannel } from '../../utils/getters';
+import { getGuildId, getChannel, getNameWithPing } from '../../utils/getters';
 
 export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,

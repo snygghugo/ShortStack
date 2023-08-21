@@ -3,6 +3,8 @@ import {
   ButtonInteraction,
   ChannelType,
 } from 'discord.js';
+import { User } from 'discord.js';
+import { Dummy } from './types';
 
 export const getGuildId = (
   interaction: ChatInputCommandInteraction | ButtonInteraction
@@ -37,4 +39,32 @@ export const getChannel = async (
   if (interaction.channel?.type !== ChannelType.GuildText)
     throw new Error('Interaction.channel is not correct type');
   return interaction.channel;
+};
+
+export const getNameWithPing = (user: User | Dummy) => {
+  if ('isDummy' in user) {
+    return `@${user.id}`;
+  }
+  return user;
+};
+
+export const getNickname = async (
+  interaction: ChatInputCommandInteraction | ButtonInteraction,
+  user: User | Dummy
+) => {
+  try {
+    if (user instanceof User) {
+      const member = await interaction.guild?.members.fetch(user.id);
+      return (
+        member?.nickname ||
+        member?.displayName ||
+        user.globalName ||
+        user.username
+      );
+    }
+    return user.username;
+  } catch (error) {
+    console.error(error);
+    throw new Error((error as Error).message);
+  }
 };

@@ -3,11 +3,11 @@ import {
   SlashCommandBuilder,
   SlashCommandUserOption,
 } from 'discord.js';
-import { getNickname, shuffle } from '../utils/generalUtilities';
+import { shuffle } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getUserPrefs } from '../database/db';
 import { PlayerObject } from '../utils/types';
-import { getUserFromInteractionOptions } from '../utils/getters';
+import { getUserFromInteractionOptions, getNickname } from '../utils/getters';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;

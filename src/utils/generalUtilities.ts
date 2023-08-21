@@ -1,12 +1,9 @@
 import {
   ButtonInteraction,
-  ChannelType,
   ChatInputCommandInteraction,
-  User,
   Message,
 } from 'discord.js';
-import { Dummy } from './types';
-
+import { getNickname } from './getters';
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
     randomIndex;
@@ -25,52 +22,6 @@ export const shuffle = <Type>(array: Type[]): Type[] => {
   }
 
   return array;
-};
-
-export const getNameWithPing = (user: User | Dummy) => {
-  if ('isDummy' in user) {
-    return `@${user.id}`;
-  }
-  return user;
-};
-
-export const getNickname = async (
-  interaction: ChatInputCommandInteraction | ButtonInteraction,
-  user: User | Dummy
-) => {
-  try {
-    if (user instanceof User) {
-      const member = await interaction.guild?.members.fetch(user.id);
-      return (
-        member?.nickname ||
-        member?.displayName ||
-        user.globalName ||
-        user.username
-      );
-    }
-    return user.username;
-  } catch (error) {
-    console.error(error);
-    throw new Error((error as Error).message);
-  }
-};
-
-export const getChannel = async (
-  channelId: string | undefined,
-  interaction: ChatInputCommandInteraction | ButtonInteraction
-) => {
-  if (channelId) {
-    const channelToReturn =
-      interaction.guild?.channels.cache.get(channelId) ||
-      (await interaction.guild?.channels.fetch(channelId)) ||
-      interaction.channel;
-    if (channelToReturn?.type !== ChannelType.GuildText)
-      throw new Error('Channel to return is not correct type');
-    return channelToReturn;
-  }
-  if (interaction.channel?.type !== ChannelType.GuildText)
-    throw new Error('Interaction.channel is not correct type');
-  return interaction.channel;
 };
 
 export const parsePrefsForEmbed = (pos: string) => {

@@ -1,10 +1,5 @@
-import { Collection, ButtonInteraction, ButtonStyle } from 'discord.js';
+import { Collection, ButtonInteraction } from 'discord.js';
 import { READY_BUTTONS } from './buttons/buttonConsts';
-
-const CENTER_PICKING_SPACES = 11;
-export const PICKING_ORDER = `\`\`\`${' '.repeat(
-  CENTER_PICKING_SPACES
-)}Picking order:${' '.repeat(CENTER_PICKING_SPACES)}\`\`\``;
 
 export const botMessages = {
   rolePrefTitle: 'Your Dota 2 Role Preferences',

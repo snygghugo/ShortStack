@@ -15,12 +15,10 @@ import {
   readyEmbedStrings,
   BLANK,
 } from '../../utils/textContent';
-import {
-  getNameWithPing,
-  parsePrefsForEmbed,
-} from '../../utils/generalUtilities';
+import { parsePrefsForEmbed } from '../../utils/generalUtilities';
 import { READY_BUTTONS, STACK_BUTTONS } from '../../utils/buttons/buttonConsts';
 import { figureItOut } from './roleDistributor';
+import { getNameWithPing } from '../../utils/getters';
 
 export const createStackButtons = () => {
   const { join, leave, dummy, condi } = STACK_BUTTONS;

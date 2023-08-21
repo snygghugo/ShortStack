@@ -21,12 +21,8 @@ import {
   READYTIME,
   STANDARD_TIME,
 } from '../../utils/consts';
-import {
-  pThreadCreator,
-  getNickname,
-  shuffle,
-} from '../../utils/generalUtilities';
-import { getGuildId, getChannel } from '../../utils/getters';
+import { pThreadCreator, shuffle } from '../../utils/generalUtilities';
+import { getGuildId, getChannel, getNickname } from '../../utils/getters';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 import {
   ConditionalPlayer,

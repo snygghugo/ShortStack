@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 import { getUserPrefs } from '../../database/db';
-import { getNickname } from '../../utils/generalUtilities';
+import { getNickname } from '../../utils/getters';
 
 export const createDummy = async (name: string, i: ButtonInteraction) => {
   const foundUser = (
