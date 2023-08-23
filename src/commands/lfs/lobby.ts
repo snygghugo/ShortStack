@@ -356,6 +356,7 @@ async function redoCollector(
   });
   collector.on('collect', async i => {
     await i.update('Again!');
+    await readyChecker(confirmedPlayers, partyMessage, partyThread);
   });
   collector.on('end', async collected => {
     if (collector.endReason === 'time') {
@@ -366,7 +367,6 @@ async function redoCollector(
       });
       return;
     }
-    await readyChecker(confirmedPlayers, partyMessage, partyThread);
     return;
   });
 }

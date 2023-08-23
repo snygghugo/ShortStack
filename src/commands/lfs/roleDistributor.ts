@@ -1,29 +1,29 @@
 import { User } from 'discord.js';
 import { ConfirmedPlayer, Dummy } from '../../utils/types';
 const confirmedTesters = [
-  // {
-  //   user: {
-  //     name: 'Tester1',
-  //     id: 'Tester1',
-  //     username: 'Tester1',
-  //     user: { username: 'Tester1' },
-  //     displayAvatarURL: () => 'https://laggan.online/abb.png',
-  //     isDummy: true,
-  //   },
-  //   nickname: 'Tester1',
-  //   preferences: ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'],
-  // },
   {
     user: {
-      name: 'Tester2',
-      id: 'Tester2',
-      username: 'Tester2',
-      user: { username: 'Tester2' },
+      name: 'Tester1',
+      id: 'Tester1',
+      username: 'Tester1',
+      user: { username: 'Tester1' },
       displayAvatarURL: () => 'https://laggan.online/abb.png',
       isDummy: true,
     },
-    nickname: 'Tester2',
-    preferences: ['pos2'],
+    nickname: 'Tester1',
+    preferences: ['pos1', 'pos2', 'pos3', 'pos4', 'pos5'],
+  },
+  {
+    user: {
+      name: 'Tester34',
+      id: 'Tester34',
+      username: 'Tester34',
+      user: { username: 'Tester34' },
+      displayAvatarURL: () => 'https://laggan.online/abb.png',
+      isDummy: true,
+    },
+    nickname: 'Tester34',
+    preferences: ['pos3', 'pos4'],
   },
   {
     user: {
@@ -49,18 +49,18 @@ const confirmedTesters = [
     nickname: 'Tester543',
     preferences: ['pos5', 'pos4', 'pos3'],
   },
-  {
-    user: {
-      name: 'Tester45',
-      id: 'Tester45',
-      username: 'Tester45',
-      user: { username: 'Tester45' },
-      displayAvatarURL: () => 'https://laggan.online/abb.png',
-      isDummy: true,
-    },
-    nickname: 'Tester45',
-    preferences: ['pos4', 'pos5'],
-  },
+  // {
+  //   user: {
+  //     name: 'Tester45',
+  //     id: 'Tester45',
+  //     username: 'Tester45',
+  //     user: { username: 'Tester45' },
+  //     displayAvatarURL: () => 'https://laggan.online/abb.png',
+  //     isDummy: true,
+  //   },
+  //   nickname: 'Tester45',
+  //   preferences: ['pos4', 'pos5'],
+  // },
 ];
 
 export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
@@ -107,7 +107,10 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
     );
     for (let i = 0; i < sortedProspectiveTakers.length; i++) {
       const prospectiveTaker = sortedProspectiveTakers[i];
-      if (!(role.carriedWeight + prospectiveTaker.preferenceWeight > 1)) {
+      if (
+        !(role.carriedWeight + prospectiveTaker.preferenceWeight > 1) &&
+        prospectiveTaker.preferenceWeight < 20 //Someone who wants all roles doesn't really matter
+      ) {
         console.log(
           `Adding the cw ${role.carriedWeight} to the weight ${prospectiveTaker.preferenceWeight} from ${prospectiveTaker.user.username}`
         );
@@ -122,3 +125,11 @@ export const figureItOut = (confirmedPlayers: ConfirmedPlayer[]) => {
   });
   return roles;
 };
+
+const roles = figureItOut(confirmedTesters);
+console.log(
+  'Restricted to',
+  roles.map(({ role, restrictedTo }) => {
+    return `${role} is restricted to ${restrictedTo.map(({ id }) => id)}`;
+  })
+);
