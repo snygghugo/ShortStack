@@ -49,39 +49,39 @@ export const lobbyEmbed = (
 ) => {
   const { open, dotaQuery, condiHeading } = lobbyEmbedStrings;
   const roles = figureItOut(confirmedPlayers);
-  const undesiredRoles = roles.filter(
-    ({ potentialPlayers, restrictedTo }) =>
-      potentialPlayers.length === 0 && restrictedTo.length === 0
-  );
-  const restrictedRoles = roles.filter(
-    ({ restrictedTo }) => restrictedTo.length
-  );
+  const undesiredRoles = roles;
+  // .filter(
+  //   ({ potentialPlayers, restrictedTo }) =>
+  //     potentialPlayers.length === 0 && restrictedTo.length === 0
+  // );
+  // const restrictedRoles = roles.filter(
+  //   ({ restrictedTo }) => restrictedTo.length
+  // );
 
   const maxLength = 5;
   const playerFields = [];
   const preferencesFields = [];
   const embedFields = [];
 
-  if (confirmedPlayers.length && restrictedRoles.length) {
+  if (confirmedPlayers.length && undesiredRoles.length !== 5) {
     console.log('These are undesired roles', undesiredRoles);
-    console.log('These are restrictedRoles', restrictedRoles);
     embedFields.push(
       {
         name: '**Needed** roles',
         value: undesiredRoles.map(({ role }) => role).join('\n'),
         inline: true,
       },
-      BLANK_FIELD_INLINE,
-      {
-        name: 'Restricted roles',
-        value: restrictedRoles
-          .map(
-            ({ role, restrictedTo }) =>
-              `${role}, restricted to ${restrictedTo.join(' & ')}`
-          )
-          .join('\n'),
-        inline: true,
-      },
+      // BLANK_FIELD_INLINE,
+      // {
+      //   name: 'Restricted roles',
+      //   value: restrictedRoles
+      //     .map(
+      //       ({ role, restrictedTo }) =>
+      //         `${role}, restricted to ${restrictedTo.join(' & ')}`
+      //     )
+      //     .join('\n'),
+      //   inline: true,
+      // },
       BLANK_FIELD
     );
   }
