@@ -1,10 +1,4 @@
-import {
-  ActionRow,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  User,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, User } from 'discord.js';
 import Canvas from '@napi-rs/canvas';
 import { request } from 'undici';
 import { PlayerObject } from '../../utils/types';
