@@ -11,17 +11,17 @@ import { getGuildId, getChannel } from '../utils/getters';
 export const data = new SlashCommandBuilder()
   .setName('queue')
   .setDescription('ShortStack queue')
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName(QUEUE_OPTIONS.join)
       .setDescription('Join the Dota 2 queue!')
   )
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName(QUEUE_OPTIONS.leave)
       .setDescription('Leave the Dota 2 queue!')
   )
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName(QUEUE_OPTIONS.invoke)
       .setDescription('Invoke the Dota 2 queue!')
@@ -54,14 +54,16 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       interaction.reply(
         `You're in! Queue looks like this:\n${guildSettings.queue.join('\n')}`
       );
+      await guildSettings.save();
       break;
     case QUEUE_OPTIONS.leave:
       guildSettings.queue = guildSettings.queue.filter(
-        user => user !== interaction.user.toString()
+        (user) => user !== interaction.user.toString()
       );
       interaction.reply(
         `You're out! Queue looks like this:\n${guildSettings.queue.join('\n')}`
       );
+      await guildSettings.save();
       break;
     case QUEUE_OPTIONS.invoke:
       if (guildSettings.queue.length < 1)
@@ -80,16 +82,19 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           guildSettings.queue,
           invokeesNeeded
         );
-        guildSettings.queue = guildSettings.queue.filter(
-          queuerId => !toRemove.some(({ id }) => id === queuerId)
+        const postInvokeGuildSettings = await getGuildFromDb(guildId);
+        postInvokeGuildSettings.queue = postInvokeGuildSettings.queue.filter(
+          (queuerId) => !toRemove.some(({ id }) => id === queuerId)
         );
+
+        await postInvokeGuildSettings.save();
         break;
       }
       interaction.reply({
         content: 'That is not an appropriate number for a Dota 2 party!',
         ephemeral: true,
       });
+
       break;
   }
-  await guildSettings.save();
 };
