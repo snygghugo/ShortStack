@@ -76,7 +76,9 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           guildSettings.yaposChannel,
           interaction
         );
-        const message = await channel.send('Setting up...');
+        const message = await channel.send(
+          `Setting up invoke for ${guildSettings.queue.join(' ')}`
+        );
         const toRemove = await invokeMessageCollector(
           message,
           guildSettings.queue,
