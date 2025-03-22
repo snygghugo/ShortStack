@@ -20,6 +20,12 @@ export const data = new SlashCommandBuilder()
     subcommand
       .setName(QUEUE_OPTIONS.leave)
       .setDescription('Leave the Dota 2 queue!')
+      .addUserOption((option) =>
+        option
+          .setName('user')
+          .setDescription('Remove another user')
+          .setRequired(false)
+      )
   )
   .addSubcommand((subcommand) =>
     subcommand
@@ -57,12 +63,19 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       await guildSettings.save();
       break;
     case QUEUE_OPTIONS.leave:
+      const userFromParam = interaction.options.getUser('user');
+      const userToRemove = userFromParam ?? interaction.user;
+
       guildSettings.queue = guildSettings.queue.filter(
-        (user) => user !== interaction.user.toString()
+        (user) => user !== userToRemove.toString()
       );
+      const outPronoun = userFromParam ? 'Queuer' : "You're";
       interaction.reply(
-        `You're out! Queue looks like this:\n${guildSettings.queue.join('\n')}`
+        `${outPronoun} out! Queue looks like this:\n${guildSettings.queue.join(
+          '\n'
+        )}`
       );
+
       await guildSettings.save();
       break;
     case QUEUE_OPTIONS.invoke:
