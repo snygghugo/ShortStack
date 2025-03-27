@@ -57,9 +57,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         break;
       }
       guildSettings.queue.push(interaction.user.toString());
-      interaction.reply(
-        `You're in! Queue looks like this:\n${guildSettings.queue.join('\n')}`
-      );
+      interaction.reply({
+        content: `You're in! Queue looks like this:\n${guildSettings.queue.join(
+          '\n'
+        )}`,
+        allowedMentions: { parse: [] },
+      });
       await guildSettings.save();
       break;
     case QUEUE_OPTIONS.leave:
@@ -70,12 +73,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         (user) => user !== userToRemove.toString()
       );
       const outPronoun = userFromParam ? 'Queuer' : "You're";
-      interaction.reply(
-        `${outPronoun} out! Queue looks like this:\n${guildSettings.queue.join(
+      interaction.reply({
+        content: `${outPronoun} out! Queue looks like this:\n${guildSettings.queue.join(
           '\n'
-        )}`
-      );
-
+        )}`,
+        allowedMentions: { parse: [] },
+      });
       await guildSettings.save();
       break;
     case QUEUE_OPTIONS.invoke:
