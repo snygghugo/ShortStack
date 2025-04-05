@@ -1,9 +1,15 @@
 import {
   ChatInputCommandInteraction,
+  InteractionResponse,
+  Message,
   SlashCommandNumberOption,
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
-import { getGuildFromDb } from '../database/db';
+import {
+  addUserToQueue,
+  getGuildFromDb,
+  removeUserFromQueue,
+} from '../database/db';
 import { invokeMessageCollector } from './queue/queueing';
 import { QUEUE_OPTIONS } from '../utils/consts';
 import { getGuildId, getChannel } from '../utils/getters';
@@ -50,33 +56,62 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
   const type = interaction.options.getSubcommand();
   const guildId = getGuildId(interaction);
   const guildSettings = await getGuildFromDb(guildId);
+  const lastMessage = (
+    await interaction.channel?.messages.fetch({
+      limit: 1,
+    })
+  )?.first();
+  const lastMessageIsQueueMessage =
+    lastMessage && lastMessage.id === guildSettings.lastQueueMessageId;
+  let messageToEdit: Message | InteractionResponse | undefined = lastMessage;
+  let messageId = lastMessage?.id;
+
   switch (type) {
     case QUEUE_OPTIONS.join:
       if (guildSettings.queue.includes(interaction.user.toString())) {
         interaction.reply("You're already in the queue!");
         break;
       }
-      guildSettings.queue.push(interaction.user.toString());
-      interaction.reply(
-        `You're in! Queue looks like this:\n${guildSettings.queue.join('\n')}`
+
+      if (!lastMessageIsQueueMessage) {
+        messageToEdit = await interaction.reply('Working...');
+        messageId = messageToEdit.id;
+      }
+
+      const postJoinGuildSettings = await addUserToQueue(
+        guildId,
+        interaction.user.toString(),
+        messageId!
       );
-      await guildSettings.save();
+
+      const queueMessage = `You're in! Queue looks like this:\n${postJoinGuildSettings.queue.join(
+        '\n'
+      )}`;
+
+      messageToEdit!.edit(queueMessage);
+
       break;
     case QUEUE_OPTIONS.leave:
       const userFromParam = interaction.options.getUser('user');
       const userToRemove = userFromParam ?? interaction.user;
 
-      guildSettings.queue = guildSettings.queue.filter(
-        (user) => user !== userToRemove.toString()
+      if (!lastMessageIsQueueMessage) {
+        messageToEdit = await interaction.reply('Working...');
+        messageId = messageToEdit.id;
+      }
+
+      const postLeaveGuildSettings = await removeUserFromQueue(
+        guildId,
+        userToRemove.toString(),
+        messageId!
       );
+
       const outPronoun = userFromParam ? 'Queuer' : "You're";
-      interaction.reply(
-        `${outPronoun} out! Queue looks like this:\n${guildSettings.queue.join(
+      messageToEdit!.edit(
+        `${outPronoun} out! Queue looks like this:\n${postLeaveGuildSettings.queue.join(
           '\n'
         )}`
       );
-
-      await guildSettings.save();
       break;
     case QUEUE_OPTIONS.invoke:
       if (guildSettings.queue.length < 1)
