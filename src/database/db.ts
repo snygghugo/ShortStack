@@ -20,6 +20,30 @@ export const getGuildFromDb = async (guildId: string) => {
   return existingGuild;
 };
 
+export const addUserToQueue = async (
+  guildId: string,
+  userId: string,
+  messageId: string
+) => {
+  return await MongoGuild.findOneAndUpdate(
+    { guildId },
+    { $addToSet: { queue: userId }, $set: { lastQueueMessageId: messageId } },
+    { upsert: true, new: true }
+  );
+};
+
+export const removeUserFromQueue = async (
+  guildId: string,
+  userId: string,
+  messageId: string
+) => {
+  return await MongoGuild.findOneAndUpdate(
+    { guildId },
+    { $pull: { queue: userId }, $set: { lastQueueMessageId: messageId } },
+    { new: true, upsert: true }
+  );
+};
+
 export const getUserPrefs = async (userId: string) => {
   const res = await MongoUser.findOne({ userId });
   if (!res) {
