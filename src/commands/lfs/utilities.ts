@@ -7,6 +7,9 @@ import { ConfirmedPlayer, PlayerToReady, Dummy } from '../../utils/types';
 import { getUserPrefs } from '../../database/db';
 import { getNickname } from '../../utils/getters';
 
+let lastPing = 0;
+const pingCooldownMs = 10_000;
+
 export const createDummy = async (name: string, i: ButtonInteraction) => {
   const foundUser = (
     await i.guild?.members.fetch({
@@ -72,16 +75,17 @@ export const pingMessage = async (
   readyArray: PlayerToReady[],
   partyThread: ThreadChannel
 ) => {
-  const reminders = [];
-  for (let player of readyArray) {
-    if (!player.ready) {
-      const gentleReminder = await partyThread.send(
-        `${player.user.toString()} hurry up, we're waiting!`
-      );
-      reminders.push(gentleReminder);
-    }
+  const now = Date.now();
+  if (now - lastPing < pingCooldownMs) return;
+
+  lastPing = now;
+
+  const reminders = readyArray.filter((p) => !p.ready);
+  if (reminders.length) {
+    const msg = await partyThread.send(reminders.map((p) => p.user).join(' '));
+
+    await msg.delete();
   }
-  reminders.forEach(async message => await message.delete());
 };
 
 export const createConfirmedPlayers = async (
@@ -98,7 +102,7 @@ export const createConfirmedPlayers = async (
   for (let i = 2; i < 7; i++) {
     const additionalUser = interaction.options.getUser('p' + i);
     if (additionalUser) {
-      if (confirmedPlayers.some(cP => cP.user.id === additionalUser.id)) {
+      if (confirmedPlayers.some((cP) => cP.user.id === additionalUser.id)) {
         return;
       }
       const additionalPlayer = {

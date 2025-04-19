@@ -78,7 +78,9 @@ export const setUp = async (
     (p): p is { user: User; preferences: string[]; nickname: string } =>
       !('isDummy' in p)
   );
-  confirmedPlayersWithoutDummies.forEach(p => partyThread.members.add(p.user));
+  confirmedPlayersWithoutDummies.forEach((p) =>
+    partyThread.members.add(p.user)
+  );
   if (confirmedPlayers.length === 5) {
     await dotaMessage.edit({
       embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
@@ -96,7 +98,7 @@ export const setUp = async (
     componentType: ComponentType.Button,
   });
   console.log('setUp: on collect');
-  collector.on('collect', async i => {
+  collector.on('collect', async (i) => {
     console.log(`${i.user.username} clicked ${i.customId}`);
     switch (i.customId) {
       case STACK_BUTTONS.join.btnId:
@@ -261,13 +263,13 @@ const readyChecker = async (
     components: rdyButtons(),
   });
   console.log('this is after the edit');
-  collector.on('collect', async i => {
+  collector.on('collect', async (i) => {
     const pickTime = getTimestamp(1);
     console.log(i.user.username + ' clicked ' + i.customId);
     switch (i.customId) {
       case READY_BUTTONS.rdy.btnId:
         const player = readyArray.find(
-          e => e.user.id === i.user.id && e.ready === false
+          (e) => e.user.id === i.user.id && e.ready === false
         );
         if (player) {
           player.ready = true;
@@ -286,9 +288,8 @@ const readyChecker = async (
         collector.stop();
         break;
       case READY_BUTTONS.ping.btnId:
-        await i.deferReply();
-        pingMessage(readyArray, partyThread);
-        await i.deleteReply();
+        await i.deferUpdate();
+        void pingMessage(readyArray, partyThread);
         break;
     }
     if (!i.deferred) {
@@ -298,7 +299,7 @@ const readyChecker = async (
     }
   });
 
-  collector.on('end', async collected => {
+  collector.on('end', async (collected) => {
     console.log(
       `Now stopping and removing components, the final interaction was: ${
         collected.last() ? collected.last()?.customId : `Nothing!`
@@ -354,11 +355,11 @@ async function redoCollector(
     max: 1,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => {
+  collector.on('collect', async (i) => {
     await i.update('Again!');
     await readyChecker(confirmedPlayers, partyMessage, partyThread);
   });
-  collector.on('end', async collected => {
+  collector.on('end', async (collected) => {
     if (collector.endReason === 'time') {
       console.log('endreason was time');
       await partyMessage.edit({
@@ -383,9 +384,9 @@ async function stackIt(
     max: 1,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => {});
+  collector.on('collect', async (i) => {});
 
-  collector.on('end', async collected => {
+  collector.on('end', async (collected) => {
     await message.edit({ components: [] });
     const interaction = collected.last();
     if (!interaction) {
