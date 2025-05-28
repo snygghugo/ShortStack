@@ -60,15 +60,17 @@ export const invokeMessageCollector = async (
   queue: string[],
   invokeesNeeded: number
 ) => {
-  const invokees: Invokee[] = queue.map(queuer => ({
+  const invokees: Invokee[] = queue.map((queuer) => ({
     id: queuer,
     hasHeeded: false,
   }));
 
   const button = createButtonRow(QUEUE_BUTTON);
   const time = getTimestamp(1000);
+
+  const peopleWord = invokeesNeeded == 1 ? 'person' : 'people';
   message.edit({
-    content: `The Stack calls for aid!\n${queue.join(
+    content: `The Stack calls for aid! ${invokeesNeeded} ${peopleWord} needed.\n${queue.join(
       '& '
     )} heed the call or be removed from the queue. Ends in <t:${
       time + FIVEMINUTES
@@ -84,8 +86,8 @@ export const invokeMessageCollector = async (
     time: FIVEMINUTES * 1000,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async i => {
-    const heeded = invokees.find(invokee => invokee.id === `<@${i.user.id}>`);
+  collector.on('collect', async (i) => {
+    const heeded = invokees.find((invokee) => invokee.id === `<@${i.user.id}>`);
     if (!heeded)
       throw new Error('Could not find this person among the invokees!');
     heeded.hasHeeded = true;
@@ -99,7 +101,7 @@ export const invokeMessageCollector = async (
   });
 
   await new Promise<void>((res, _rej) => {
-    collector.on('end', async => {
+    collector.on('end', (async) => {
       message.edit({
         content: '',
         embeds: [createInvokeEmbed(invokees, invokeesNeeded, true)],
