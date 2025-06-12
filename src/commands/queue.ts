@@ -74,7 +74,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       }
 
       if (!lastMessageIsQueueMessage) {
-        messageToEdit = await interaction.reply('Working...');
+        messageToEdit = await interaction.reply('Adding to queue...');
         messageId = messageToEdit.id;
       }
 
@@ -96,7 +96,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       const userToRemove = userFromParam ?? interaction.user;
 
       if (!lastMessageIsQueueMessage) {
-        messageToEdit = await interaction.reply('Working...');
+        messageToEdit = await interaction.reply('Removing from queue...');
         messageId = messageToEdit.id;
       }
 
