@@ -24,7 +24,9 @@ export const lfsSetUpStrings = {
   setUpMessageContent: (roleCall: string, time: number, queue: string[]) => {
     let messageContent = `Calling all ${roleCall}! Closes <t:${time}:R>`;
     if (queue.length) {
-      messageContent += `\n${queue.join(' & ')} for your consideration`;
+      messageContent += `\n${queue
+        .map((id) => `<@${id}>`)
+        .join(' & ')} for your consideration`;
     }
     return messageContent;
   },

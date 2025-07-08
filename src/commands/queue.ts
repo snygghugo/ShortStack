@@ -6,9 +6,9 @@ import {
 } from 'discord.js';
 import { SlashCommandBuilder } from 'discord.js';
 import {
-  addUserToQueue,
+  addUsersToQueue,
   getGuildFromDb,
-  removeUserFromQueue,
+  removeUsersFromQueue,
 } from '../database/db';
 import { invokeMessageCollector } from './queue/queueing';
 import { QUEUE_OPTIONS } from '../utils/consts';
@@ -21,15 +21,21 @@ export const data = new SlashCommandBuilder()
     subcommand
       .setName(QUEUE_OPTIONS.join)
       .setDescription('Join the Dota 2 queue!')
+      .addStringOption((option) =>
+        option
+          .setName('user')
+          .setDescription('Add other users')
+          .setRequired(false)
+      )
   )
   .addSubcommand((subcommand) =>
     subcommand
       .setName(QUEUE_OPTIONS.leave)
       .setDescription('Leave the Dota 2 queue!')
-      .addUserOption((option) =>
+      .addStringOption((option) =>
         option
           .setName('user')
-          .setDescription('Remove another user')
+          .setDescription('Remove other users')
           .setRequired(false)
       )
   )
@@ -68,7 +74,20 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
   switch (type) {
     case QUEUE_OPTIONS.join:
-      if (guildSettings.queue.includes(interaction.user.toString())) {
+      const joinUsersString = interaction.options.getString('user');
+      let usersToAdd = [interaction.user.id];
+
+      if (joinUsersString) {
+        const idMatches = joinUsersString
+          ? [...joinUsersString.matchAll(/<@!?(?<id>\d+)>/g)]
+          : [];
+
+        if (!idMatches) {
+          messageToEdit!.edit('No valid users entered');
+          break;
+        }
+        usersToAdd = [...idMatches.map((m) => m.groups!.id)];
+      } else if (guildSettings.queue.includes(interaction.user.id)) {
         interaction.reply("You're already in the queue!");
         break;
       }
@@ -78,13 +97,18 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         messageId = messageToEdit.id;
       }
 
-      const postJoinGuildSettings = await addUserToQueue(
+      const postJoinGuildSettings = await addUsersToQueue(
         guildId,
-        interaction.user.toString(),
+        usersToAdd,
         messageId!
       );
 
-      const queueMessage = `You're in! Queue looks like this:\n${postJoinGuildSettings.queue.join(
+      const joinMentionLines = postJoinGuildSettings.queue.map(
+        (id) => `<@${id}>`
+      );
+      const joinSIfMany = usersToAdd?.length > 1 ? 's' : '';
+      const joinPronoun = joinUsersString ? `Queuer${joinSIfMany}` : "You're";
+      const queueMessage = `${joinPronoun} in! Queue looks like this:\n${joinMentionLines.join(
         '\n'
       )}`;
 
@@ -92,25 +116,35 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
 
       break;
     case QUEUE_OPTIONS.leave:
-      const userFromParam = interaction.options.getUser('user');
-      const userToRemove = userFromParam ?? interaction.user;
+      let usersToRemove = [interaction.user.id];
+      const usersString = interaction.options.getString('user');
+
+      if (usersString) {
+        const idMatches = usersString
+          ? [...usersString.matchAll(/<@!?(?<id>\d+)>/g)]
+          : [];
+        if (!idMatches) {
+          messageToEdit!.edit('No valid users entered');
+          return;
+        }
+        usersToRemove = [...idMatches.map((m) => m.groups!.id)];
+      }
 
       if (!lastMessageIsQueueMessage) {
         messageToEdit = await interaction.reply('Removing from queue...');
         messageId = messageToEdit.id;
       }
 
-      const postLeaveGuildSettings = await removeUserFromQueue(
+      const postLeaveGuildSettings = await removeUsersFromQueue(
         guildId,
-        userToRemove.toString(),
+        usersToRemove,
         messageId!
       );
-
-      const outPronoun = userFromParam ? 'Queuer' : "You're";
+      const sIfMany = usersToRemove.length > 1 ? 's' : '';
+      const outPronoun = usersString ? `Queuer${sIfMany}` : "You're";
+      const mentionLines = postLeaveGuildSettings.queue.map((id) => `<@${id}>`);
       messageToEdit!.edit(
-        `${outPronoun} out! Queue looks like this:\n${postLeaveGuildSettings.queue.join(
-          '\n'
-        )}`
+        `${outPronoun} out! Queue looks like this:\n${mentionLines.join('\n')}`
       );
       break;
     case QUEUE_OPTIONS.invoke:
@@ -124,8 +158,9 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           guildSettings.yaposChannel,
           interaction
         );
+        const mentionLines = guildSettings.queue.map((id) => `<@${id}>`);
         const message = await channel.send(
-          `Setting up invoke for ${guildSettings.queue.join(' ')}`
+          `Setting up invoke for ${mentionLines.join(' ')}`
         );
         const toRemove = await invokeMessageCollector(
           message,
