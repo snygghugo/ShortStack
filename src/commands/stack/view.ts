@@ -106,8 +106,10 @@ export const stackEmbed = async (
     })
     .join('\n');
   const mobileField = playerArray.map(prettifyString);
+  const getPlayerPosition = (player: PlayerObject) =>
+    player.user.id === "395189309688512512" ? 'jakiro' : player.position;
   const positionField = playerArray
-    .map(({ position, randomed }) => `${position}${'!?'.repeat(randomed)}`)
+    .map((player) => `${getPlayerPosition(player)}${'!?'.repeat(player.randomed)}`)
     .join('\n');
   const newCanvas = await artTime(playerArray, oldCanvas);
   if (nextUp) {
