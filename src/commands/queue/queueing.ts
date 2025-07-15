@@ -22,20 +22,20 @@ const fillFields = (
   if (confirmedIn.length) {
     returnArray.push({
       name: isFinished ? 'In the stack' : 'Answered call',
-      value: confirmedIn.map(({ id }) => id).join('\n'),
+      value: confirmedIn.map(({ id }) => `<@${id}>`).join('\n'),
     });
   }
   if (heeded.length) {
     returnArray.push({
       name: isFinished ? 'Will remain in queue' : 'Will remain in queue',
-      value: heeded.map(({ id }) => id).join('\n'),
+      value: heeded.map(({ id }) => `<@${id}>`).join('\n'),
       inline: true,
     });
   }
   if (noHeed.length) {
     returnArray.push({
       name: isFinished ? 'Will be removed from queue' : 'No reply',
-      value: noHeed.map(({ id }) => id).join('\n'),
+      value: noHeed.map(({ id }) => `<@${id}>`).join('\n'),
       inline: true,
     });
   }
@@ -68,9 +68,10 @@ export const invokeMessageCollector = async (
   const button = createButtonRow(QUEUE_BUTTON);
   const time = getTimestamp(1000);
 
+  const queueMentionLines = queue.map((id) => `<@${id}>`);
   const peopleWord = invokeesNeeded == 1 ? 'person' : 'people';
   message.edit({
-    content: `The Stack calls for aid! ${invokeesNeeded} ${peopleWord} needed.\n${queue.join(
+    content: `The Stack calls for aid! ${invokeesNeeded} ${peopleWord} needed.\n${queueMentionLines.join(
       '& '
     )} heed the call or be removed from the queue. Ends in <t:${
       time + FIVEMINUTES
@@ -80,14 +81,14 @@ export const invokeMessageCollector = async (
   });
 
   const filter = (i: CollectedInteraction) =>
-    i.customId === QUEUE_BUTTON.btnId && queue.includes(`<@${i.user.id}>`);
+    i.customId === QUEUE_BUTTON.btnId && queue.includes(i.user.id);
   const collector = message.createMessageComponentCollector({
     filter,
     time: FIVEMINUTES * 1000,
     componentType: ComponentType.Button,
   });
   collector.on('collect', async (i) => {
-    const heeded = invokees.find((invokee) => invokee.id === `<@${i.user.id}>`);
+    const heeded = invokees.find((invokee) => invokee.id === i.user.id);
     if (!heeded)
       throw new Error('Could not find this person among the invokees!');
     heeded.hasHeeded = true;
