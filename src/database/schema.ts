@@ -5,7 +5,6 @@ export type MongoGuildT = {
   strictPicking: boolean;
   yaposChannel?: string;
   yaposRole?: string;
-  lastQueueMessageId?: string;
 };
 
 export const mongoGuildSchema = new Schema<MongoGuildT>({
