@@ -34,6 +34,7 @@ export type PlayerToReady = {
   user: User | Dummy;
   ready: boolean;
   pickTime: number;
+  autoReady?: boolean;
 };
 
 export type HugoData = {
