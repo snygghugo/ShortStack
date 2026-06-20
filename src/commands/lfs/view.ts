@@ -33,10 +33,10 @@ export const createStackButtons = () => {
 };
 
 export const rdyButtons = () => {
-  const { rdy, stop, sudo, ping } = READY_BUTTONS;
-  const buttonRow = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(createButton(rdy))
-    .addComponents(createButton(stop));
+  const { rdy, sudo, ping } = READY_BUTTONS;
+  const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    createButton(rdy),
+  );
   const row2 = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(createButton(sudo))
     .addComponents(createButton(ping));
@@ -45,7 +45,7 @@ export const rdyButtons = () => {
 
 export const lobbyEmbed = (
   confirmedPlayers: ConfirmedPlayer[],
-  condiPlayers: ConditionalPlayer[]
+  condiPlayers: ConditionalPlayer[],
 ) => {
   const { open, dotaQuery, condiHeading } = lobbyEmbedStrings;
   const roles = figureItOut(confirmedPlayers);
@@ -82,7 +82,7 @@ export const lobbyEmbed = (
       //     .join('\n'),
       //   inline: true,
       // },
-      BLANK_FIELD
+      BLANK_FIELD,
     );
   }
 
@@ -91,7 +91,7 @@ export const lobbyEmbed = (
     if (player) {
       playerFields.push(getNameWithPing(player.user).toString());
       preferencesFields.push(
-        player.preferences.map(parsePrefsForEmbed).join(' > ')
+        player.preferences.map(parsePrefsForEmbed).join(' > '),
       );
     } else {
       playerFields.push(open);
@@ -105,12 +105,12 @@ export const lobbyEmbed = (
       name: '*Preferences*',
       value: preferencesFields.join('\n'),
       inline: true,
-    }
+    },
   );
 
   if (condiPlayers.length > 0) {
     const conditionalFields = condiPlayers.map(
-      ({ user, condition }) => `${user} - ${condition}`
+      ({ user, condition }) => `${user} - ${condition}`,
     );
     embedFields.push(BLANK_FIELD);
     embedFields.push({
@@ -145,7 +145,7 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
         name: BLANK,
         value: readyArray
           .map(({ ready, pickTime }) =>
-            ready ? `✅ \`readied in ${pickTime / 1000}\`` : '❌'
+            ready ? `✅ \`readied in ${pickTime / 1000}\`` : '❌',
           )
           .join('\n'),
         inline: true,
