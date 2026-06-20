@@ -20,33 +20,26 @@ export const getGuildFromDb = async (guildId: string) => {
   return existingGuild;
 };
 
-export const addUsersToQueue = async (
-  guildId: string,
-  userIds: string[],
-  messageId: string
-) => {
+export const addUsersToQueue = async (guildId: string, userIds: string[]) => {
   return await MongoGuild.findOneAndUpdate(
     { guildId },
     {
       $addToSet: { queue: { $each: userIds } },
-      $set: { lastQueueMessageId: messageId },
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 };
 
 export const removeUsersFromQueue = async (
   guildId: string,
   userIds: string[],
-  messageId: string
 ) => {
   return await MongoGuild.findOneAndUpdate(
     { guildId },
     {
       $pull: { queue: { $in: userIds } },
-      $set: { lastQueueMessageId: messageId },
     },
-    { new: true, upsert: true }
+    { new: true, upsert: true },
   );
 };
 
@@ -60,11 +53,11 @@ export const getUserPrefs = async (userId: string) => {
 
 export const updateUserPrefs = async (
   userId: string,
-  preferences: string[]
+  preferences: string[],
 ) => {
   const userHasPrefs = await MongoUser.findOneAndUpdate(
     { userId },
-    { $set: { preferences } }
+    { $set: { preferences } },
   );
   if (!userHasPrefs) {
     const newUserPrefs = await new MongoUser({ userId, preferences }).save();
