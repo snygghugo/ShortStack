@@ -103,11 +103,17 @@ export const setUp = async (
 
   const beginReadyCheck = async (
     i: ButtonInteraction | ModalMessageModalSubmitInteraction,
+    autoReadyUserId?: string,
   ) => {
     readyStarted = true;
     joinPhaseLocked = true;
     await ackAndDiscard(i);
-    await readyChecker(confirmedPlayers, dotaMessage, partyThread);
+    await readyChecker(
+      confirmedPlayers,
+      dotaMessage,
+      partyThread,
+      autoReadyUserId,
+    );
     setTimeout(() => collector.stop(), STRAY_CLICK_GRACE);
   };
 
@@ -134,7 +140,7 @@ export const setUp = async (
         confirmedPlayers.push({ user: i.user, preferences, nickname });
         await partyThread.members.add(i.user);
         if (confirmedPlayers.length >= 5) {
-          await beginReadyCheck(i);
+          await beginReadyCheck(i, i.user.id);
           return;
         }
         await i.update({
@@ -289,6 +295,7 @@ const readyChecker = async (
   confirmedPlayers: ConfirmedPlayer[],
   partyMessage: Message<true>,
   partyThread: AnyThreadChannel,
+  autoReadyUserId?: string,
 ) => {
   console.log('now we are in the ready checker');
   const {
@@ -299,8 +306,9 @@ const readyChecker = async (
   } = readyCheckerStrings;
   const readyArray = confirmedPlayers.map(({ user }) => ({
     user,
-    ready: false,
+    ready: autoReadyUserId !== undefined && user.id === autoReadyUserId,
     pickTime: 0,
+    autoReady: autoReadyUserId !== undefined && user.id === autoReadyUserId,
   }));
   const time = getTimestamp(1000);
   const miliTime = getTimestamp(1);

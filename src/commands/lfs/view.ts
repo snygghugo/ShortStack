@@ -144,8 +144,12 @@ export const readyEmbed = (readyArray: PlayerToReady[]) => {
       {
         name: BLANK,
         value: readyArray
-          .map(({ ready, pickTime }) =>
-            ready ? `✅ \`readied in ${pickTime / 1000}\`` : '❌',
+          .map(({ ready, pickTime, autoReady }) =>
+            ready
+              ? autoReady
+                ? '✅ `auto ready`'
+                : `✅ \`readied in ${pickTime / 1000}\``
+              : '❌',
           )
           .join('\n'),
         inline: true,
