@@ -12,10 +12,8 @@ import {
 import { getGuildFromDb, getUserPrefs } from '../../database/db';
 import {
   READY_BUTTONS,
-  READY_TO_READY_BUTTON,
   REDO_BUTTON,
   STACK_BUTTONS,
-  STACK_IT_BUTTON,
 } from '../../utils/buttons/buttonConsts';
 import {
   FIVEMINUTES,
@@ -87,16 +85,12 @@ export const setUp = async (
     partyThread.members.add(p.user),
   );
   if (confirmedPlayers.length === 5) {
-    await dotaMessage.edit({
-      embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
-      components: [createButtonRow(READY_TO_READY_BUTTON)],
-    });
+    await readyChecker(confirmedPlayers, dotaMessage, partyThread);
+    return;
   }
 
   const filter = (i: CollectedMessageInteraction) =>
-    (i.customId in STACK_BUTTONS ||
-      i.customId === READY_TO_READY_BUTTON.btnId) &&
-    i.message.id === dotaMessage.id;
+    i.customId in STACK_BUTTONS && i.message.id === dotaMessage.id;
   const collector = dotaMessage.createMessageComponentCollector({
     filter,
     time: timeLimit * 1000,
@@ -107,9 +101,13 @@ export const setUp = async (
   let joinPhaseLocked = confirmedPlayers.length >= 5;
   let readyStarted = false;
 
-  const startReadyChecker = async (i: ButtonInteraction) => {
+  const beginReadyCheck = async (
+    i: ButtonInteraction | ModalMessageModalSubmitInteraction,
+  ) => {
+    readyStarted = true;
+    joinPhaseLocked = true;
     await ackAndDiscard(i);
-    readyChecker(confirmedPlayers, dotaMessage, partyThread);
+    await readyChecker(confirmedPlayers, dotaMessage, partyThread);
     setTimeout(() => collector.stop(), STRAY_CLICK_GRACE);
   };
 
@@ -136,11 +134,7 @@ export const setUp = async (
         confirmedPlayers.push({ user: i.user, preferences, nickname });
         await partyThread.members.add(i.user);
         if (confirmedPlayers.length >= 5) {
-          joinPhaseLocked = true;
-          await i.update({
-            embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
-            components: [createButtonRow(READY_TO_READY_BUTTON)],
-          });
+          await beginReadyCheck(i);
           return;
         }
         await i.update({
@@ -209,11 +203,7 @@ export const setUp = async (
     }
     confirmedPlayers.push(dummy);
     if (confirmedPlayers.length >= 5) {
-      joinPhaseLocked = true;
-      await modalInteraction.update({
-        embeds: [lobbyEmbed(confirmedPlayers, condiPlayers)],
-        components: [createButtonRow(READY_TO_READY_BUTTON)],
-      });
+      await beginReadyCheck(modalInteraction);
       return;
     }
     await modalInteraction.update({
@@ -263,15 +253,6 @@ export const setUp = async (
 
   collector.on('collect', (i) => {
     console.log(`${i.user.username} clicked ${i.customId}`);
-    if (i.customId === READY_TO_READY_BUTTON.btnId) {
-      if (readyStarted) {
-        void ackAndDiscard(i);
-        return;
-      }
-      readyStarted = true;
-      void startReadyChecker(i);
-      return;
-    }
     if (readyStarted || joinPhaseLocked) {
       void ackAndDiscard(i);
       return;
@@ -296,24 +277,11 @@ export const setUp = async (
   console.log('setUp: on end');
   collector.on('end', async () => {
     if (readyStarted) return;
-    if (confirmedPlayers.length < 5) {
-      await dotaMessage.edit({
-        content: outOfTime,
-        components: [],
-        embeds: [],
-      });
-      return;
-    }
-    console.log(
-      'Finishing and starting the ready checker from the ELSE block of the component collector',
-    );
-    readyStarted = true;
     await dotaMessage.edit({
-      content: 'Setting up ready check...',
+      content: outOfTime,
       components: [],
       embeds: [],
     });
-    readyChecker(confirmedPlayers, dotaMessage, partyThread);
   });
 };
 
@@ -446,13 +414,37 @@ const readyChecker = async (
       }
     }
 
-    console.log('this is the else block before the stack button is made');
-    const stackButton = createButtonRow(STACK_IT_BUTTON);
+    console.log('Everyone is ready, going straight to stacking');
+    const startInteraction = collected.last();
+    if (!startInteraction) {
+      await partyMessage.edit({
+        content: "You actually don't seem all that ready.",
+      });
+      return;
+    }
     await partyMessage.edit({
       content: finalMessageContent(collected),
-      components: [stackButton],
+      components: [],
     });
-    await stackIt(partyMessage, confirmedPlayers);
+    const playerArray: PlayerObject[] = [];
+    for (const { user, preferences, nickname } of confirmedPlayers) {
+      playerArray.push({
+        user,
+        nickname,
+        position: '',
+        preferences,
+        artTarget: false,
+        fillFlag: false,
+        randomed: 0,
+      });
+    }
+    const shuffledPlayerArray = shuffle(playerArray);
+    await stackSetup(
+      startInteraction,
+      shuffledPlayerArray,
+      STANDARD_TIME,
+      partyMessage,
+    );
   });
 };
 
@@ -483,53 +475,5 @@ async function redoCollector(
       return;
     }
     return;
-  });
-}
-
-async function stackIt(
-  message: Message<true>,
-  confirmedPlayers: ConfirmedPlayer[],
-) {
-  const filter = (i: CollectedInteraction) =>
-    i.message?.id === message.id && i.customId === STACK_IT_BUTTON.btnId;
-  const collector = message.createMessageComponentCollector({
-    filter,
-    time: FIVEMINUTES * 1000,
-    max: 1,
-    componentType: ComponentType.Button,
-  });
-  collector.on('collect', async (i) => {});
-
-  collector.on('end', async (collected) => {
-    await message.edit({ components: [] });
-    const interaction = collected.last();
-    if (!interaction) {
-      console.log(
-        'It is possible that they are actually ready but the interaction is falsy so who knows',
-        interaction,
-        collected,
-      );
-
-      await message.edit({
-        content: "You actually don't seem all that ready.",
-      });
-      return;
-    }
-
-    const playerArray: PlayerObject[] = [];
-
-    for (const { user, preferences, nickname } of confirmedPlayers) {
-      playerArray.push({
-        user,
-        nickname,
-        position: '',
-        preferences,
-        artTarget: false,
-        fillFlag: false,
-        randomed: 0,
-      });
-    }
-    const shuffledPlayerArray = shuffle(playerArray);
-    await stackSetup(interaction, shuffledPlayerArray, STANDARD_TIME, message);
   });
 }
