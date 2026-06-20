@@ -24,9 +24,12 @@ export const stackSetup = async (
   interaction: ChatInputCommandInteraction | ButtonInteraction,
   playerArray: PlayerObject[],
   pickTime: number,
-  oldMessage?: Message<true>
+  oldMessage?: Message<true>,
 ) => {
-  interaction.deferReply();
+  const needsAck = !interaction.replied && !interaction.deferred;
+  if (needsAck) {
+    interaction.deferReply();
+  }
   const guildId = getGuildId(interaction);
   const guildSettings = await getGuildFromDb(guildId);
   const isStrictPicking = guildSettings.strictPicking;
@@ -35,7 +38,9 @@ export const stackSetup = async (
   if (!oldMessage) {
     await pThreadCreator(interaction, message);
   }
-  await interaction.deleteReply();
+  if (needsAck) {
+    await interaction.deleteReply();
+  }
   stackExecute(playerArray, message, pickTime, interaction, isStrictPicking);
 };
 
@@ -45,7 +50,7 @@ const stackExecute = async (
   pickTime: number,
   interaction: ChatInputCommandInteraction | ButtonInteraction,
   isStrictPicking: boolean,
-  oldCanvas?: Canvas
+  oldCanvas?: Canvas,
 ) => {
   const available = availableRoles(playerArray);
   const nextUp = whosNext(playerArray);
@@ -73,7 +78,7 @@ const stackExecute = async (
 
   await message.edit({
     content: `**YOUR TURN TO PICK ${getNameWithPing(
-      nextUp.user
+      nextUp.user,
     )}!**\nIf you do not pick you will be assigned ${assignedRole} in <t:${
       time + pickTime + spaghettiTime
     }:R>`,
@@ -89,9 +94,9 @@ const stackExecute = async (
     componentType: ComponentType.Button,
   });
 
-  collector.on('collect', async i => {
+  collector.on('collect', async (i) => {
     console.log(
-      `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`
+      `${i.user.username} clicked ${i.customId} for ${nextUp.user.username}`,
     );
     if (isStrictPicking) {
       const isAppropriateInteraction = strictPicking(i, nextUp, interaction);
@@ -122,7 +127,7 @@ const stackExecute = async (
     try {
       if (collector.endReason === 'time') {
         console.log(
-          `Autopicked picked ${assignedRole} for ${nextUp.user.username}`
+          `Autopicked picked ${assignedRole} for ${nextUp.user.username}`,
         );
       }
       if (nextUp.position === 'fill') {
@@ -134,7 +139,7 @@ const stackExecute = async (
         pickTime,
         interaction,
         isStrictPicking,
-        newCanvas
+        newCanvas,
       );
       return;
     } catch (error) {
