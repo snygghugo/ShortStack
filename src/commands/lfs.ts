@@ -25,7 +25,7 @@ export const data = new SlashCommandBuilder()
       .setDescription('How long can you wait for a Stack?')
       .setRequired(false)
       .setMinValue(5)
-      .setMaxValue(60)
+      .setMaxValue(120)
   );
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
