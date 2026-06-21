@@ -3,11 +3,15 @@ import {
   SlashCommandBuilder,
   SlashCommandUserOption,
 } from 'discord.js';
-import { shuffle } from '../utils/generalUtilities';
+import { shuffle, delay } from '../utils/generalUtilities';
 import { stackSetup } from './stack/stacking';
 import { getUserPrefs } from '../database/db';
 import { PlayerObject } from '../utils/types';
 import { getUserFromInteractionOptions, getNickname } from '../utils/getters';
+import {
+  SIMULATE_STACK_LATENCY,
+  SIMULATE_STACK_LATENCY_MS,
+} from '../utils/consts';
 
 const STANDARD_TIME = 60;
 const DOTA_PARTY_SIZE = 5;
@@ -68,6 +72,16 @@ export const data = new SlashCommandBuilder()
   );
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   await interaction.deferReply();
+
+  // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -------
+  // Simulates slow pre-work AFTER the ack to prove /stack survives latency that
+  // previously crashed it (10062). OFF in prod.
+  if (SIMULATE_STACK_LATENCY) {
+    console.log(
+      `[SIM] /stack: waiting ${SIMULATE_STACK_LATENCY_MS}ms of slow pre-work AFTER the ack...`,
+    );
+    await delay(SIMULATE_STACK_LATENCY_MS);
+  }
 
   const pickTime = interaction.options.getInteger('time') || STANDARD_TIME;
   const playerArray = await createPlayerArray(interaction);

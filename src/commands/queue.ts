@@ -9,8 +9,13 @@ import {
   removeUsersFromQueue,
 } from '../database/db';
 import { invokeMessageCollector } from './queue/queueing';
-import { QUEUE_OPTIONS } from '../utils/consts';
+import {
+  QUEUE_OPTIONS,
+  SIMULATE_STACK_LATENCY,
+  SIMULATE_STACK_LATENCY_MS,
+} from '../utils/consts';
 import { getGuildId, getChannel } from '../utils/getters';
+import { delay } from '../utils/generalUtilities';
 
 export const data = new SlashCommandBuilder()
   .setName('queue')
@@ -58,6 +63,15 @@ export const data = new SlashCommandBuilder()
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   await interaction.deferReply();
+
+  // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -------
+  // Simulates slow pre-work AFTER the ack to prove /queue survives latency. OFF in prod.
+  if (SIMULATE_STACK_LATENCY) {
+    console.log(
+      `[SIM] /queue: waiting ${SIMULATE_STACK_LATENCY_MS}ms of slow pre-work AFTER the ack...`,
+    );
+    await delay(SIMULATE_STACK_LATENCY_MS);
+  }
 
   const type = interaction.options.getSubcommand();
   const guildId = getGuildId(interaction);

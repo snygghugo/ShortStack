@@ -20,8 +20,10 @@ import {
   ONEHOUR,
   READYTIME,
   STANDARD_TIME,
+  SIMULATE_STACK_LATENCY,
+  SIMULATE_STACK_LATENCY_MS,
 } from '../../utils/consts';
-import { pThreadCreator, shuffle } from '../../utils/generalUtilities';
+import { pThreadCreator, shuffle, delay } from '../../utils/generalUtilities';
 import { getGuildId, getChannel, getNickname } from '../../utils/getters';
 import { lfsSetUpStrings, readyCheckerStrings } from '../../utils/textContent';
 import {
@@ -107,6 +109,15 @@ export const setUp = async (
   ) => {
     readyStarted = true;
     joinPhaseLocked = true;
+    // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -----
+    // Auto ready-check on lobby fill. Simulate slow pre-ack work before acking
+    // the join that triggered it, to verify the transition survives latency.
+    if (SIMULATE_STACK_LATENCY) {
+      console.log(
+        `[SIM] /lfs auto ready-check: waiting ${SIMULATE_STACK_LATENCY_MS}ms before acking the trigger interaction...`,
+      );
+      await delay(SIMULATE_STACK_LATENCY_MS);
+    }
     await ackAndDiscard(i);
     await readyChecker(
       confirmedPlayers,
@@ -447,6 +458,15 @@ const readyChecker = async (
       });
     }
     const shuffledPlayerArray = shuffle(playerArray);
+    // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -----
+    // /lfs ready-check -> stack transition. Simulate latency before stacking to
+    // verify it still completes (edits the party message, no 3s deadline).
+    if (SIMULATE_STACK_LATENCY) {
+      console.log(
+        `[SIM] /lfs -> stack: waiting ${SIMULATE_STACK_LATENCY_MS}ms before stacking...`,
+      );
+      await delay(SIMULATE_STACK_LATENCY_MS);
+    }
     await stackSetup(
       startInteraction,
       shuffledPlayerArray,

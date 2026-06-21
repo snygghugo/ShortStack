@@ -5,6 +5,11 @@ import {
 import { setUp } from './lfs/lobby';
 import { createConfirmedPlayers } from './lfs/utilities';
 import { SlashCommandBuilder } from 'discord.js';
+import { delay } from '../utils/generalUtilities';
+import {
+  SIMULATE_STACK_LATENCY,
+  SIMULATE_STACK_LATENCY_MS,
+} from '../utils/consts';
 let playerNo = 2;
 const addUser = (option: SlashCommandUserOption) =>
   option
@@ -30,6 +35,15 @@ export const data = new SlashCommandBuilder()
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   await interaction.deferReply();
+
+  // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -------
+  // Simulates slow pre-work AFTER the ack to prove /lfs survives latency. OFF in prod.
+  if (SIMULATE_STACK_LATENCY) {
+    console.log(
+      `[SIM] /lfs: waiting ${SIMULATE_STACK_LATENCY_MS}ms of slow pre-work AFTER the ack...`,
+    );
+    await delay(SIMULATE_STACK_LATENCY_MS);
+  }
 
   const confirmedPlayers = await createConfirmedPlayers(interaction);
   if (!confirmedPlayers) {
