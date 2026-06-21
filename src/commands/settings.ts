@@ -8,6 +8,11 @@ import {
 import { SlashCommandBuilder } from 'discord.js';
 import { getGuildFromDb } from '../database/db';
 import { getGuildId } from '../utils/getters';
+import { delay } from '../utils/generalUtilities';
+import {
+  SIMULATE_STACK_LATENCY,
+  SIMULATE_STACK_LATENCY_MS,
+} from '../utils/consts';
 
 export const data = new SlashCommandBuilder()
   .setName('settings')
@@ -61,6 +66,15 @@ const throwIfNullOrUndefined = <Type>(
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
   await interaction.deferReply();
+
+  // --- LATENCY SIMULATION (dev only, gated by SIMULATE_STACK_LATENCY) -------
+  // Simulates slow pre-work AFTER the ack to prove /settings survives latency. OFF in prod.
+  if (SIMULATE_STACK_LATENCY) {
+    console.log(
+      `[SIM] /settings: waiting ${SIMULATE_STACK_LATENCY_MS}ms of slow pre-work AFTER the ack...`,
+    );
+    await delay(SIMULATE_STACK_LATENCY_MS);
+  }
 
   const guildId = getGuildId(interaction);
   const commandName = throwIfNullOrUndefined(

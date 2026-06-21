@@ -15,6 +15,16 @@ export const FIVEMINUTES = 5 * 60;
 export const READYTIME = 2 * 60;
 export const STANDARD_TIME = 60;
 
+// --- /stack latency simulation (dev only, OFF by default) ------------------
+// Reproduces the production 3s interaction-ack deadline bug locally. Enable in
+// PowerShell with:
+//   $env:SIMULATE_STACK_LATENCY=1; npm start        (default 4000ms, past 3s)
+export const SIMULATE_STACK_LATENCY =
+  process.env.SIMULATE_STACK_LATENCY === '1' ||
+  process.env.SIMULATE_STACK_LATENCY === 'true';
+export const SIMULATE_STACK_LATENCY_MS =
+  Number(process.env.SIMULATE_STACK_LATENCY_MS) || 4000;
+
 export const QUEUE_OPTIONS = {
   join: 'join',
   leave: 'leave',

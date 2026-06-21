@@ -4,6 +4,10 @@ import {
   Message,
 } from 'discord.js';
 import { getNickname } from './getters';
+
+export const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 export const shuffle = <Type>(array: Type[]): Type[] => {
   let currentIndex = array.length,
     randomIndex;
