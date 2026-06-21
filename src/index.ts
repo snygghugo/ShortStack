@@ -40,7 +40,7 @@ client.once('ready', async () => {
   // transferDb(); if I need to update something form the JSON settings
 });
 
-client.on('interactionCreate', async interaction => {
+client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
   if (interaction.channel?.type !== ChannelType.GuildText) {
     await interaction.reply({
@@ -57,15 +57,33 @@ client.on('interactionCreate', async interaction => {
   if (!command) return;
 
   try {
-    command.execute(interaction);
+    await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    await interaction.reply({
-      content: 'There was an error while executing this command!',
-      ephemeral: true,
-      components: [],
-    });
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({
+          content: 'There was an error while executing this command!',
+          components: [],
+        });
+      } else {
+        await interaction.reply({
+          content: 'There was an error while executing this command!',
+          ephemeral: true,
+          components: [],
+        });
+      }
+    } catch (replyError) {
+      console.error('Failed to send error reply to interaction:', replyError);
+    }
   }
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection:', reason);
+});
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
 });
 
 client.login(token);

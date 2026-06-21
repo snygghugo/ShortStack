@@ -18,7 +18,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
     try {
       const userToAdd = getUserFromInteractionOptions(interaction, 'p' + i);
       if (playerArray.some(({ user }) => user.id === userToAdd.id)) {
-        interaction.reply('Please provide 5 unique players!');
+        await interaction.editReply('Please provide 5 unique players!');
         return;
       }
       const preferences = await getUserPrefs(userToAdd.id);
@@ -36,7 +36,7 @@ const createPlayerArray = async (interaction: ChatInputCommandInteraction) => {
     } catch (error) {
       const errorMsg = (error as Error).message;
       console.error(error);
-      await interaction.reply({
+      await interaction.editReply({
         content:
           'Something went wrong when setting up the player array! ' + errorMsg,
         embeds: [],
@@ -63,12 +63,14 @@ export const data = new SlashCommandBuilder()
   .addUserOption(addUser)
   .addUserOption(addUser)
   .addUserOption(addUser)
-  .addIntegerOption(option =>
-    option.setName('time').setDescription('Pick time')
+  .addIntegerOption((option) =>
+    option.setName('time').setDescription('Pick time'),
   );
 export const execute = async (interaction: ChatInputCommandInteraction) => {
+  await interaction.deferReply();
+
   const pickTime = interaction.options.getInteger('time') || STANDARD_TIME;
   const playerArray = await createPlayerArray(interaction);
   if (!playerArray) return;
-  stackSetup(interaction, playerArray, pickTime);
+  await stackSetup(interaction, playerArray, pickTime);
 };

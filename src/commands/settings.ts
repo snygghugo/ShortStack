@@ -12,7 +12,7 @@ import { getGuildId } from '../utils/getters';
 export const data = new SlashCommandBuilder()
   .setName('settings')
   .setDescription('ShortStack settings')
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName('stackschannel')
       .setDescription('Set where ShortStack publishes the stack stuff')
@@ -20,10 +20,10 @@ export const data = new SlashCommandBuilder()
         option
           .setName('stackschannel')
           .setDescription('Set where ShortStack publishes the stack stuff')
-          .setRequired(true)
-      )
+          .setRequired(true),
+      ),
   )
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName('role')
       .setDescription('Set which role ShortStack @pings')
@@ -31,27 +31,27 @@ export const data = new SlashCommandBuilder()
         option
           .setName('role')
           .setDescription('Set which role ShortStack @pings')
-          .setRequired(true)
-      )
+          .setRequired(true),
+      ),
   )
-  .addSubcommand(subcommand =>
+  .addSubcommand((subcommand) =>
     subcommand
       .setName('strictpicking')
       .setDescription(
-        'Restrict everyone from being able to select roles for anyone'
+        'Restrict everyone from being able to select roles for anyone',
       )
       .addBooleanOption((option: SlashCommandBooleanOption) =>
         option
           .setName('strictpicking')
           .setDescription(
-            'Restrict everyone from being able to select roles for anyone'
+            'Restrict everyone from being able to select roles for anyone',
           )
-          .setRequired(true)
-      )
+          .setRequired(true),
+      ),
   );
 
 const throwIfNullOrUndefined = <Type>(
-  thingToCheck: Type | undefined | null
+  thingToCheck: Type | undefined | null,
 ) => {
   if (thingToCheck) {
     return thingToCheck;
@@ -60,9 +60,11 @@ const throwIfNullOrUndefined = <Type>(
 };
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
+  await interaction.deferReply();
+
   const guildId = getGuildId(interaction);
   const commandName = throwIfNullOrUndefined(
-    interaction.options.getSubcommand()
+    interaction.options.getSubcommand(),
   );
   const guildSettings = await getGuildFromDb(guildId);
   let reply = 'Nothing was changed!';
@@ -72,10 +74,10 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       const stacksChannel = interaction.options.getChannel('stackschannel');
       if (!stacksChannel) throw new Error('Unable to get stacksChannel!');
       if (stacksChannel.type !== ChannelType.GuildText) {
-        return interaction.reply({
+        await interaction.editReply({
           content: 'Please choose a standard text channel!',
-          ephemeral: true,
         });
+        return;
       }
       guildSettings.yaposChannel = stacksChannel.id;
       reply = `Roger! In the future I will output the good stuff in ${stacksChannel}.`;
@@ -84,10 +86,10 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       const role = interaction.options.getRole('role');
       if (!role) throw new Error('Unable to get role!');
       if (role.id === interaction.guildId) {
-        return interaction.reply({
+        await interaction.editReply({
           content: "Don't make me ping everyone please!",
-          ephemeral: true,
         });
+        return;
       }
       guildSettings.yaposRole = role.id;
       reply = `Roger! In the future I will ping ${role} when I set up a stack!`;
@@ -106,6 +108,6 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       break;
   }
   await guildSettings.save();
-  interaction.reply({ content: reply, ephemeral: false });
+  await interaction.editReply({ content: reply });
   return;
 };
