@@ -57,6 +57,8 @@ export const data = new SlashCommandBuilder()
   );
 
 export const execute = async (interaction: ChatInputCommandInteraction) => {
+  await interaction.deferReply();
+
   const type = interaction.options.getSubcommand();
   const guildId = getGuildId(interaction);
   const guildSettings = await getGuildFromDb(guildId);
@@ -72,12 +74,12 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           : [];
 
         if (!idMatches) {
-          await interaction.reply('No valid users entered');
+          await interaction.editReply('No valid users entered');
           break;
         }
         usersToAdd = [...idMatches.map((m) => m.groups!.id)];
       } else if (guildSettings.queue.includes(interaction.user.id)) {
-        await interaction.reply("You're already in the queue!");
+        await interaction.editReply("You're already in the queue!");
         break;
       }
 
@@ -88,7 +90,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       );
       const joinSIfMany = usersToAdd?.length > 1 ? 's' : '';
       const joinPronoun = joinUsersString ? `Queuer${joinSIfMany}` : "You're";
-      await interaction.reply(
+      await interaction.editReply(
         `${joinPronoun} in! Queue looks like this:\n${joinMentionLines.join(
           '\n',
         )}`,
@@ -104,7 +106,7 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
           ? [...usersString.matchAll(/<@!?(?<id>\d+)>/g)]
           : [];
         if (!idMatches) {
-          await interaction.reply('No valid users entered');
+          await interaction.editReply('No valid users entered');
           break;
         }
         usersToRemove = [...idMatches.map((m) => m.groups!.id)];
@@ -117,17 +119,18 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
       const sIfMany = usersToRemove.length > 1 ? 's' : '';
       const outPronoun = usersString ? `Queuer${sIfMany}` : "You're";
       const mentionLines = postLeaveGuildSettings.queue.map((id) => `<@${id}>`);
-      await interaction.reply(
+      await interaction.editReply(
         `${outPronoun} out! Queue looks like this:\n${mentionLines.join('\n')}`,
       );
       break;
     case QUEUE_OPTIONS.invoke:
-      if (guildSettings.queue.length < 1)
-        return interaction.reply('Queue is empty!');
+      if (guildSettings.queue.length < 1) {
+        await interaction.editReply('Queue is empty!');
+        break;
+      }
       const invokeesNeeded = interaction.options.getNumber('invokees');
       if (invokeesNeeded) {
-        interaction.deferReply();
-        interaction.deleteReply();
+        await interaction.deleteReply();
         const channel = await getChannel(
           guildSettings.yaposChannel,
           interaction,
@@ -149,9 +152,8 @@ export const execute = async (interaction: ChatInputCommandInteraction) => {
         await postInvokeGuildSettings.save();
         break;
       }
-      interaction.reply({
+      await interaction.editReply({
         content: 'That is not an appropriate number for a Dota 2 party!',
-        ephemeral: true,
       });
 
       break;

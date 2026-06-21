@@ -26,22 +26,38 @@ export const stackSetup = async (
   pickTime: number,
   oldMessage?: Message<true>,
 ) => {
-  const needsAck = !interaction.replied && !interaction.deferred;
-  if (needsAck) {
-    interaction.deferReply();
+  let message: Message<true> | undefined = oldMessage;
+  try {
+    const guildId = getGuildId(interaction);
+    const guildSettings = await getGuildFromDb(guildId);
+    const isStrictPicking = guildSettings.strictPicking;
+    const channel = await getChannel(guildSettings.yaposChannel, interaction);
+    message = oldMessage || (await channel.send('Setting up shop...'));
+    if (!oldMessage) {
+      await pThreadCreator(interaction, message);
+    }
+    if (interaction.deferred) {
+      await interaction.deleteReply();
+    }
+    await stackExecute(
+      playerArray,
+      message,
+      pickTime,
+      interaction,
+      isStrictPicking,
+    );
+  } catch (error) {
+    console.error('stack setup/render failed:', error);
+    await message
+      ?.edit({
+        content:
+          'Something went wrong while setting up the stack. Please try /stack again.',
+        components: [],
+      })
+      .catch((editError) =>
+        console.error('Failed to report stack error to channel:', editError),
+      );
   }
-  const guildId = getGuildId(interaction);
-  const guildSettings = await getGuildFromDb(guildId);
-  const isStrictPicking = guildSettings.strictPicking;
-  const channel = await getChannel(guildSettings.yaposChannel, interaction);
-  const message = oldMessage || (await channel.send('Setting up shop...'));
-  if (!oldMessage) {
-    await pThreadCreator(interaction, message);
-  }
-  if (needsAck) {
-    await interaction.deleteReply();
-  }
-  stackExecute(playerArray, message, pickTime, interaction, isStrictPicking);
 };
 
 const stackExecute = async (
@@ -59,6 +75,7 @@ const stackExecute = async (
   const art = new AttachmentBuilder(await newCanvas.encode('png'), {
     name: 'dota-map.png',
   });
+
   if (!nextUp) {
     await message.edit({
       content: 'All done!',
@@ -123,7 +140,7 @@ const stackExecute = async (
     collector.stop();
   });
 
-  collector.on('end', () => {
+  collector.on('end', async () => {
     try {
       if (collector.endReason === 'time') {
         console.log(
@@ -133,7 +150,7 @@ const stackExecute = async (
       if (nextUp.position === 'fill') {
         nextUp.artTarget = false;
       }
-      stackExecute(
+      await stackExecute(
         playerArray,
         message,
         pickTime,
@@ -143,8 +160,12 @@ const stackExecute = async (
       );
       return;
     } catch (error) {
-      message.edit('There was an error, baby!  ' + error);
       console.log(error);
+      await message
+        .edit('There was an error, baby!  ' + error)
+        .catch((editError) =>
+          console.error('Failed to report stack error to channel:', editError),
+        );
     }
   });
 };
