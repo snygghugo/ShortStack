@@ -44,6 +44,7 @@ import { getDummyNameModal, condiModal } from './modals';
 import { createStackButtons, lobbyEmbed, rdyButtons, readyEmbed } from './view';
 
 const STRAY_CLICK_GRACE = 3000;
+const RECHECK_TIME = FIVEMINUTES * 3;
 
 export const setUp = async (
   interaction: ChatInputCommandInteraction,
@@ -395,33 +396,32 @@ const readyChecker = async (
         collected.last() ? collected.last()?.customId : `Nothing!`
       }`,
     );
+    if (!everyoneReady(readyArray)) {
+      const time = getTimestamp(1000);
+      const redoButton = createButtonRow(REDO_BUTTON);
+      const reCheckCloses = time + RECHECK_TIME;
+      const stopper = collected.last()?.member?.toString() || 'Someone';
+      const content =
+        collected.last()?.customId === READY_BUTTONS.stop.btnId
+          ? stoppedMessageContent(stopper, reCheckCloses)
+          : failedMessageContent(READYTIME, reCheckCloses);
+      try {
+        await partyMessage.edit({
+          content,
+          embeds: [readyEmbed(readyArray)],
+          components: [redoButton],
+        });
+      } catch (error) {
+        console.error('Failed to render the Re-check option', error);
+      }
+      await redoCollector(partyMessage, confirmedPlayers, partyThread);
+      return;
+    }
+
     await partyMessage.edit({
       components: [],
       embeds: [readyEmbed(readyArray)],
     });
-    if (!everyoneReady(readyArray)) {
-      const time = getTimestamp(1000);
-      const redoButton = createButtonRow(REDO_BUTTON);
-      switch (collected.last()?.customId) {
-        case READY_BUTTONS.stop.btnId:
-          const stopper = collected.last()?.member?.toString() || 'Someone';
-          await partyMessage.edit({
-            content: stoppedMessageContent(stopper, time + FIVEMINUTES),
-            components: [redoButton],
-          });
-          await redoCollector(partyMessage, confirmedPlayers, partyThread);
-          return;
-
-        default:
-          await partyMessage.edit({
-            content: failedMessageContent(READYTIME, time + FIVEMINUTES),
-            components: [redoButton],
-          });
-          await redoCollector(partyMessage, confirmedPlayers, partyThread);
-          return;
-      }
-    }
-
     console.log('Everyone is ready, going straight to stacking');
     const startInteraction = collected.last();
     if (!startInteraction) {
@@ -465,23 +465,36 @@ async function redoCollector(
     i.message?.id === partyMessage.id && i.customId === REDO_BUTTON.btnId;
   const collector = partyMessage.createMessageComponentCollector({
     filter,
-    time: FIVEMINUTES * 3 * 1000,
-    max: 1,
+    time: RECHECK_TIME * 1000,
     componentType: ComponentType.Button,
   });
-  collector.on('collect', async (i) => {
-    await i.update('Again!');
-    await readyChecker(confirmedPlayers, partyMessage, partyThread);
+  let redoStarted = false;
+  collector.on('collect', (i) => {
+    if (redoStarted) {
+      void ackAndDiscard(i);
+      return;
+    }
+    redoStarted = true;
+    void (async () => {
+      try {
+        await ackAndDiscard(i);
+        await readyChecker(confirmedPlayers, partyMessage, partyThread);
+      } catch (error) {
+        console.error('Error starting re-check', error);
+      } finally {
+        setTimeout(() => collector.stop(), STRAY_CLICK_GRACE);
+      }
+    })();
   });
-  collector.on('end', async (collected) => {
-    if (collector.endReason === 'time') {
-      console.log('endreason was time');
+  collector.on('end', async () => {
+    if (redoStarted) return;
+    try {
       await partyMessage.edit({
         content: 'Ready check failed.',
         components: [],
       });
-      return;
+    } catch (error) {
+      console.error('Failed to close the re-check window', error);
     }
-    return;
   });
 }
